@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SzZrt — AI Prompting Assessment</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg-deep: #06060f;
+  --bg-card: #0d0d1a;
+  --bg-card-hover: #111128;
+  --neon-green: #00ff88;
+  --neon-magenta: #ff006e;
+  --neon-blue: #00d4ff;
+  --neon-purple: #a855f7;
+  --neon-yellow: #facc15;
+  --text-primary: #e8e8f0;
+  --text-secondary: #7a7a9e;
+  --text-muted: #44445e;
+  --border: #1a1a35;
+  --glow-green: 0 0 20px rgba(0,255,136,0.3), 0 0 40px rgba(0,255,136,0.1);
+  --glow-magenta: 0 0 20px rgba(255,0,110,0.3), 0 0 40px rgba(255,0,110,0.1);
+  --glow-blue: 0 0 20px rgba(0,212,255,0.3), 0 0 40px rgba(0,212,255,0.1);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: 'Outfit', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Scanline overlay */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Grid background */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: 
+    linear-gradient(rgba(0,255,136,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,136,0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 20px 16px;
+  position: relative;
+}
+
+/* ===== TIMER BAR ===== */
+.timer-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  background: rgba(6,6,15,0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  z-index: 1000;
+}
+
+.timer-display {
+  font-family: 'Orbitron', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--neon-green);
+  text-shadow: var(--glow-green);
+  letter-spacing: 2px;
+}
+
+.timer-display.warning { color: var(--neon-yellow); text-shadow: 0 0 20px rgba(250,204,21,0.4); }
+.timer-display.danger { color: var(--neon-magenta); text-shadow: var(--glow-magenta); animation: pulse-danger 0.5s ease infinite alternate; }
+
+@keyframes pulse-danger { to { opacity: 0.6; } }
+
+.timer-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.progress-track {
+  position: fixed;
+  top: 56px; left: 0; right: 0;
+  height: 3px;
+  background: var(--border);
+  z-index: 1000;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--neon-green), var(--neon-blue));
+  box-shadow: 0 0 10px var(--neon-green);
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== WELCOME SCREEN ===== */
+.screen { display: none; padding-top: 80px; }
+.screen.active { display: block; }
+
+.welcome-screen {
+  text-align: center;
+  padding-top: 140px;
+  min-height: 100vh;
+}
+
+.logo-mark {
+  font-family: 'Orbitron', monospace;
+  font-size: 12px;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: var(--neon-green);
+  text-shadow: var(--glow-green);
+  margin-bottom: 32px;
+  opacity: 0;
+  animation: fadeInUp 0.8s ease forwards;
+}
+
+.welcome-title {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 900;
+  line-height: 1.2;
+  margin-bottom: 16px;
+  opacity: 0;
+  animation: fadeInUp 0.8s ease 0.2s forwards;
+}
+
+.welcome-title .accent-green { color: var(--neon-green); text-shadow: var(--glow-green); }
+.welcome-title .accent-magenta { color: var(--neon-magenta); text-shadow: var(--glow-magenta); }
+
+.welcome-sub {
+  font-size: 16px;
+  color: var(--text-secondary);
+  max-width: 540px;
+  margin: 0 auto 48px;
+  line-height: 1.7;
+  opacity: 0;
+  animation: fadeInUp 0.8s ease 0.4s forwards;
+}
+
+.rules-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  max-width: 600px;
+  margin: 0 auto 48px;
+  opacity: 0;
+  animation: fadeInUp 0.8s ease 0.6s forwards;
+}
+
+.rule-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 16px;
+  text-align: center;
+}
+
+.rule-icon { font-size: 28px; margin-bottom: 8px; }
+.rule-value { font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 700; color: var(--neon-blue); }
+.rule-label { font-size: 11px; color: var(--text-secondary); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+
+.name-input-wrap {
+  max-width: 400px;
+  margin: 0 auto 32px;
+  opacity: 0;
+  animation: fadeInUp 0.8s ease 0.8s forwards;
+}
+
+.name-input {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 20px;
+  color: var(--text-primary);
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.name-input:focus {
+  border-color: var(--neon-green);
+  box-shadow: var(--glow-green);
+}
+
+.name-input::placeholder { color: var(--text-muted); }
+
+.start-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: 2px solid var(--neon-green);
+  color: var(--neon-green);
+  font-family: 'Orbitron', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 16px 40px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  transition: all 0.3s;
+  opacity: 0;
+  animation: fadeInUp 0.8s ease 1s forwards;
+}
+
+.start-btn:hover {
+  background: var(--neon-green);
+  color: var(--bg-deep);
+  box-shadow: var(--glow-green);
+}
+
+.start-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.start-btn:disabled:hover { background: transparent; color: var(--neon-green); box-shadow: none; }
+
+/* ===== QUESTION SCREEN ===== */
+.question-screen { padding-top: 80px; }
+
+.q-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.q-number {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--neon-blue);
+  text-shadow: var(--glow-blue);
+  text-transform: uppercase;
+}
+
+.q-points {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--neon-yellow);
+  background: rgba(250,204,21,0.08);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(250,204,21,0.2);
+}
+
+.q-category {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.q-title {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(20px, 3.5vw, 28px);
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+}
+
+.q-description {
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  margin-bottom: 28px;
+}
+
+.q-description strong { color: var(--text-primary); font-weight: 600; }
+
+/* AI text block to evaluate */
+.ai-text-block {
+  background: rgba(255,0,110,0.04);
+  border: 1px solid rgba(255,0,110,0.2);
+  border-left: 3px solid var(--neon-magenta);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.ai-text-block::before {
+  content: '🤖 AI OUTPUT';
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--neon-magenta);
+  position: absolute;
+  top: -10px;
+  left: 16px;
+  background: var(--bg-deep);
+  padding: 0 8px;
+}
+
+.ai-text-block p {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Multiple choice */
+.mc-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+
+.mc-option {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: all 0.25s;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.mc-option:hover { border-color: rgba(0,212,255,0.3); background: var(--bg-card-hover); }
+
+.mc-option.selected {
+  border-color: var(--neon-green);
+  background: rgba(0,255,136,0.04);
+  box-shadow: inset 0 0 30px rgba(0,255,136,0.02);
+}
+
+.mc-dot {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--text-muted);
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: all 0.25s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-option.selected .mc-dot {
+  border-color: var(--neon-green);
+  background: var(--neon-green);
+  box-shadow: var(--glow-green);
+}
+
+.mc-option.selected .mc-dot::after {
+  content: '✓';
+  color: var(--bg-deep);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.mc-text { font-size: 14px; line-height: 1.6; color: var(--text-secondary); }
+.mc-option.selected .mc-text { color: var(--text-primary); }
+
+/* Text area */
+.text-area-wrap { margin-bottom: 28px; }
+
+.text-area-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.char-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.text-area {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  resize: vertical;
+  min-height: 140px;
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.text-area:focus {
+  border-color: var(--neon-blue);
+  box-shadow: var(--glow-blue);
+}
+
+.text-area::placeholder { color: var(--text-muted); font-style: italic; }
+
+/* Multi-select checkboxes */
+.checkbox-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 28px; }
+
+.checkbox-option {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 18px;
+  cursor: pointer;
+  transition: all 0.25s;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.checkbox-option:hover { border-color: rgba(168,85,247,0.3); }
+
+.checkbox-option.selected {
+  border-color: var(--neon-purple);
+  background: rgba(168,85,247,0.04);
+}
+
+.cb-box {
+  width: 20px; height: 20px;
+  border-radius: 5px;
+  border: 2px solid var(--text-muted);
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: all 0.25s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.checkbox-option.selected .cb-box {
+  border-color: var(--neon-purple);
+  background: var(--neon-purple);
+  box-shadow: 0 0 15px rgba(168,85,247,0.3);
+}
+
+.checkbox-option.selected .cb-box::after { content: '✓'; color: #fff; font-weight: 800; }
+
+/* Navigation */
+.nav-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.nav-btn {
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.25s;
+  border: none;
+}
+
+.nav-btn.prev {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.nav-btn.prev:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+
+.nav-btn.next {
+  background: linear-gradient(135deg, var(--neon-green), #00cc6a);
+  color: var(--bg-deep);
+  font-weight: 700;
+}
+
+.nav-btn.next:hover { box-shadow: var(--glow-green); transform: translateY(-1px); }
+
+.nav-btn.submit {
+  background: linear-gradient(135deg, var(--neon-magenta), #cc0058);
+  color: #fff;
+  font-weight: 700;
+  font-family: 'Orbitron', monospace;
+  letter-spacing: 1px;
+}
+
+.nav-btn.submit:hover { box-shadow: var(--glow-magenta); transform: translateY(-1px); }
+
+/* Step indicators */
+.step-dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.step-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.step-dot.done { background: var(--neon-green); box-shadow: 0 0 8px rgba(0,255,136,0.4); }
+.step-dot.current { background: var(--neon-blue); box-shadow: 0 0 8px rgba(0,212,255,0.4); width: 24px; border-radius: 4px; }
+
+/* ===== RESULT SCREEN ===== */
+.result-screen {
+  text-align: center;
+  padding-top: 140px;
+  min-height: 100vh;
+}
+
+.result-score-wrap {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 32px;
+}
+
+.result-ring {
+  width: 220px;
+  height: 220px;
+}
+
+.result-ring-bg { fill: none; stroke: var(--border); stroke-width: 6; }
+
+.result-ring-fill {
+  fill: none;
+  stroke-width: 6;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  transition: stroke-dashoffset 2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.result-score-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.result-score-number {
+  font-family: 'Orbitron', monospace;
+  font-size: 52px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.result-score-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.result-message {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(18px, 3vw, 26px);
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.result-sub {
+  font-size: 14px;
+  color: var(--text-secondary);
+  max-width: 500px;
+  margin: 0 auto 40px;
+  line-height: 1.7;
+}
+
+.result-breakdown {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.breakdown-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.breakdown-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+
+.breakdown-score {
+  font-family: 'Orbitron', monospace;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.breakdown-max { font-size: 13px; color: var(--text-muted); }
+
+/* Pass confetti canvas */
+#confetti-canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(0,255,136,0.1); }
+  50% { box-shadow: 0 0 40px rgba(0,255,136,0.3); }
+}
+
+.fade-in { animation: fadeInUp 0.5s ease forwards; }
+
+/* Responsive */
+@media (max-width: 600px) {
+  .rules-grid { grid-template-columns: 1fr; }
+  .result-breakdown { grid-template-columns: 1fr 1fr; }
+  .timer-bar { padding: 0 12px; }
+}
+
+/* Hint box */
+.hint-box {
+  background: rgba(0,212,255,0.04);
+  border: 1px solid rgba(0,212,255,0.15);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: var(--neon-blue);
+  line-height: 1.6;
+}
+
+.hint-box .hint-icon { margin-right: 6px; }
+
+/* Muted volume button */
+.sound-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+.sound-toggle:hover { border-color: var(--text-secondary); }
+</style>
+</head>
+<body>
+
+<div class="timer-bar" id="timerBar" style="display:none;">
+  <div>
+    <div class="timer-label">Hátralévő idő</div>
+    <div class="timer-display" id="timerDisplay">30:00</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <button class="sound-toggle" id="soundToggle" title="Hang ki/be">🔊</button>
+    <div id="questionCounter" style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text-secondary);"></div>
+  </div>
+</div>
+
+<div class="progress-track" id="progressTrack" style="display:none;">
+  <div class="progress-fill" id="progressFill" style="width:0%"></div>
+</div>
+
+<canvas id="confetti-canvas"></canvas>
+
+<div class="container">
+
+  <!-- ===== WELCOME ===== -->
+  <div class="screen active" id="welcomeScreen">
+    <div class="welcome-screen">
+      <div class="logo-mark">Szerencsejáték Zrt. — Innovációs Osztály</div>
+      <h1 class="welcome-title">
+        <span class="accent-green">AI</span> Prompting<br>
+        <span class="accent-magenta">Assessment</span>
+      </h1>
+      <p class="welcome-sub">
+        Ez a teszt azt méri, hogyan használod az AI eszközöket valós üzleti problémák megoldására. 
+        Nem a tudásodat teszteljük — hanem azt, <strong>hogyan gondolkodsz és kommunikálsz egy AI-val</strong>.
+      </p>
+      <div class="rules-grid">
+        <div class="rule-card">
+          <div class="rule-icon">⏱</div>
+          <div class="rule-value">30:00</div>
+          <div class="rule-label">Perc összesen</div>
+        </div>
+        <div class="rule-card">
+          <div class="rule-icon">💯</div>
+          <div class="rule-value">100</div>
+          <div class="rule-label">Max. pont</div>
+        </div>
+        <div class="rule-card">
+          <div class="rule-icon">🤖</div>
+          <div class="rule-value">ANY</div>
+          <div class="rule-label">Bármely AI</div>
+        </div>
+      </div>
+      <div class="name-input-wrap">
+        <input type="text" class="name-input" id="candidateName" placeholder="Írd be a nevedet a kezdéshez..." autocomplete="off">
+      </div>
+      <button class="start-btn" id="startBtn" disabled onclick="startTest()">
+        Indítás <span style="font-size:18px;">→</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== QUESTIONS ===== -->
+  <div class="screen" id="questionScreen">
+    <div class="question-screen" id="questionContent"></div>
+  </div>
+
+  <!-- ===== RESULT ===== -->
+  <div class="screen" id="resultScreen">
+    <div class="result-screen" id="resultContent"></div>
+  </div>
+
+</div>
+
+<script>
+// ===== AUDIO ENGINE =====
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+let soundEnabled = true;
+
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playTone(freq, type, duration, vol = 0.15) {
+  if (!soundEnabled) return;
+  ensureAudio();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration);
+}
+
+function sfxClick() { playTone(800, 'sine', 0.08, 0.1); }
+function sfxSelect() { playTone(1200, 'sine', 0.1, 0.12); playTone(1600, 'sine', 0.08, 0.08); }
+function sfxNav() { playTone(500, 'triangle', 0.15, 0.1); setTimeout(() => playTone(700, 'triangle', 0.12, 0.08), 60); }
+function sfxType() { playTone(600 + Math.random() * 400, 'sine', 0.03, 0.04); }
+function sfxSubmit() { playTone(400, 'square', 0.1, 0.08); setTimeout(() => playTone(600, 'square', 0.1, 0.08), 100); setTimeout(() => playTone(800, 'square', 0.15, 0.1), 200); }
+
+function sfxSuccess() {
+  const notes = [523, 659, 784, 1047];
+  notes.forEach((f, i) => setTimeout(() => playTone(f, 'sine', 0.3, 0.12), i * 120));
+}
+
+function sfxNeutral() {
+  playTone(440, 'sine', 0.4, 0.1);
+  setTimeout(() => playTone(440, 'triangle', 0.3, 0.06), 200);
+}
+
+document.getElementById('soundToggle').addEventListener('click', function() {
+  soundEnabled = !soundEnabled;
+  this.textContent = soundEnabled ? '🔊' : '🔇';
+  sfxClick();
+});
+
+// ===== STATE =====
+let currentQ = 0;
+let answers = {};
+let timerInterval = null;
+let totalSeconds = 30 * 60;
+let testStarted = false;
+
+// ===== QUESTIONS DATA =====
+const questions = [
+  {
+    id: 'q1',
+    type: 'mc',
+    category: 'Prompt Engineering Alapok',
+    points: 10,
+    title: 'Az eredményes prompt anatómiája',
+    description: 'Egy kollégád a következő promptot írta egy AI-nak: <em>"Írj valamit a lottóról."</em> — Mi a <strong>legfontosabb</strong> első lépés ennek a promptnak a javítására?',
+    options: [
+      { id: 'a', text: 'Hosszabbá tenni — minél több szó, annál jobb az output.', score: 0 },
+      { id: 'b', text: 'Kontextust, szerepkört és elvárt output-formátumot adni (pl. "Mint a SzZrt marketing igazgatója, írj egy 200 szavas elemzést a lottó piaci trendjeiről, bullet point formátumban").', score: 10 },
+      { id: 'c', text: 'Megkérni az AI-t, hogy "gondolkodjon kreatívan" — ez javítja a minőséget.', score: 3 },
+      { id: 'd', text: 'Ugyanazt a promptot többször beküldeni, mert minden alkalommal jobb választ ad.', score: 0 }
+    ]
+  },
+  {
+    id: 'q2',
+    type: 'mc',
+    category: 'Iteráció & Stratégia',
+    points: 10,
+    title: 'Az iteráció művészete',
+    description: 'Kapsz egy AI-tól egy 800 szavas elemzést a magyar gambling piacról, de az output felszínes és generic. Mit teszel?',
+    options: [
+      { id: 'a', text: 'Törlöm és újraindítom — talán most jobbat ad.', score: 0 },
+      { id: 'b', text: 'Specifikus follow-up promptokat írok: "Az 5. bekezdés túl általános. Adj konkrét adatokat a 18-29 éves korosztály lottó-részvételi arányáról, és elemezd a csökkenés okait a viselkedés-gazdaságtan szemszögéből."', score: 10 },
+      { id: 'c', text: 'Elfogadom — az AI biztosan tudja, mit csinál, hiszen rengeteg adatot látott.', score: 0 },
+      { id: 'd', text: 'Átírom kézzel az egészet, mert az AI úgysem képes mély elemzésre.', score: 2 }
+    ]
+  },
+  {
+    id: 'q3',
+    type: 'text',
+    category: 'Prompt Writing — Kreatív',
+    points: 20,
+    title: 'Tervezz egy új lottójátékot!',
+    description: 'A Szerencsejáték Zrt. egy új digitális lottójátékot szeretne, ami a <strong>18-29 éves korosztályt</strong> célozza. Jelenleg ez a szegmens drámaian alulreprezentált. <strong>Írj egy promptot</strong> (bármely AI-nak), ami egy innovatív játékkoncepciót generáltatna! Nem az ötlet számít — hanem a prompt minősége.',
+    placeholder: 'Írd ide a promptodat... A jó prompt tartalmaz szerepkört, kontextust, constraint-eket, output formátumot, és kreatív irányt.',
+    hint: '💡 Gondolj arra: milyen szerepkört adsz az AI-nak? Milyen adatokat közölsz kontextusként? Milyen formátumot vársz el? Milyen korlátokat szabsz?',
+    minLength: 150,
+    keywords: ['szerep', 'kontextus', 'formátum', 'célcsoport', 'gen z', '18-29', 'gamifi', 'digitális', 'constraint', 'korlát', 'output', 'struktúr', 'péld', 'role', 'context', 'format']
+  },
+  {
+    id: 'q4',
+    type: 'multiselect',
+    category: 'Kritikai Gondolkodás',
+    points: 15,
+    title: 'Bullshit Detector: Szűrd ki a problémás állításokat!',
+    description: 'Az alábbi AI-generált szöveget egy felelős játék kampányhoz készítette az AI. <strong>Jelöld meg az összes problémás állítást!</strong>',
+    aiText: '„A Szerencsejáték Zrt. elkötelezett a felelős játék mellett. Kutatások szerint a játékosok 97%-a egészséges módon játszik, és a lottó valójában pozitív pszichológiai hatásokkal jár: fokozza az optimizmust, erősíti a közösségi összetartozást, és a \'mi lenne ha\' gondolatkísérlet kreatív gondolkodásra ösztönöz. A Responsible Gaming programunk az iparág legjobbja, 15 éve folyamatosan csökkentjük a problémás játékosok számát."',
+    options: [
+      { id: 'a', text: '"a játékosok 97%-a egészséges módon játszik" — forrás nélküli, potenciálisan félrevezető statisztika', correct: true },
+      { id: 'b', text: '"a lottó pozitív pszichológiai hatásokkal jár" — egyoldalú framing, figyelmen kívül hagyja a negatív hatásokat', correct: true },
+      { id: 'c', text: '"fokozza az optimizmust, erősíti a közösségi összetartozást" — tudományosan nem alátámasztott általánosítás', correct: true },
+      { id: 'd', text: '"A Responsible Gaming programunk az iparág legjobbja" — szubjektív, bizonyíték nélküli superlative', correct: true },
+      { id: 'e', text: '"15 éve folyamatosan csökkentjük a problémás játékosok számát" — ellenőrizhetetlen állítás, nincs hivatkozás', correct: true },
+      { id: 'f', text: '"A Szerencsejáték Zrt. elkötelezett a felelős játék mellett" — ez egy általános vállalati elköteleződési nyilatkozat, ami önmagában nem problémás', correct: false }
+    ],
+    scoringNote: 'Minden helyes jelölés +3 pont, minden téves jelölés -2 pont (min: 0)'
+  },
+  {
+    id: 'q5',
+    type: 'text',
+    category: 'Prompt Javítás & Iteráció',
+    points: 15,
+    title: 'Javítsd meg az AI outputját!',
+    description: 'A fenti problémás szöveget (előző kérdés) egy rossz prompt hozta létre: <em>"Írj egy szöveget a felelős játékról a weboldalunkra."</em> — <strong>Írj egy javított promptot</strong>, ami etikailag korrekt, adatalapú, kiegyensúlyozott szöveget generálna!',
+    placeholder: 'Írj ide egy javított promptot, ami orvosolja az előző kérdésben azonosított problémákat...',
+    hint: '💡 Gondolj arra: hogyan kérnéd az AI-t, hogy kiegyensúlyozott legyen? Hogyan kerülöd el a cherry-pickinget? Milyen hangnemet szabsz meg? Kérsz-e forrásokat?',
+    minLength: 120,
+    keywords: ['kiegyensúlyoz', 'balanced', 'forrás', 'source', 'adat', 'etik', 'kockázat', 'risk', 'negatív', 'negative', 'nem szabad', 'elkerül', 'torzítás', 'bias', 'kritik', 'objektív', 'transzparen']
+  },
+  {
+    id: 'q6',
+    type: 'text',
+    category: 'Komplex Feladat — Stratégia',
+    points: 20,
+    title: 'Az „Elveszett Generáció" visszaszerzése',
+    description: 'A SzZrt adatai szerint a gambling penetráció 78%-ról 66%-ra esett (2015-2024), az Ötöslottó játékosoknál a 18-29 évesek aránya 50%-ról 24%-ra zuhant. <strong>Írj egy komplex, multi-step promptot</strong>, ami egy AI-tól egy teljes stratégiai javaslatot kérne arra, hogyan lehetne visszaszerezni ezt a generációt — de közben a felelős játék keretein belül maradva.',
+    placeholder: 'Írj egy komplex, strukturált promptot, ami lépésről lépésre vezeti az AI-t egy stratégiai dokumentum létrehozásához...',
+    hint: '💡 Ez a legösszetettebb feladat. A legjobb megoldás: multi-step vagy chain-of-thought prompt, ami dekomponálja a problémát. Gondolj a piaci adatokra, viselkedési mintákra, digitális csatornákra, szabályozási korlátokra, és a felelős játékra.',
+    minLength: 200,
+    keywords: ['lépés', 'step', 'először', 'first', 'másod', 'second', 'elemz', 'analy', 'adat', 'data', 'stratégi', 'célcsoport', 'target', 'digitális', 'digital', 'social', 'felelős', 'responsible', 'korlát', 'constraint', 'kpi', 'mér', 'measure', 'viselkedés', 'behavior', 'gamifi', 'innov', 'channel', 'csatorna', 'persona', 'segment']
+  },
+  {
+    id: 'q7',
+    type: 'mc',
+    category: 'AI Etika & Felelősség',
+    points: 10,
+    title: 'A prompter felelőssége',
+    description: 'Az AI egy kampányszöveget generált, ami szerint <em>"A lottó a legjobb befektetés az alacsony jövedelmű családok számára."</em> — Ez nyilvánvalóan problémás. Mi a leghelyesebb reakció?',
+    options: [
+      { id: 'a', text: 'Használom, mert az AI tudja mit csinál, és a marketing csapatnak tetszeni fog.', score: 0 },
+      { id: 'b', text: 'Módosítom a promptot, hogy explicit kizárja a félrevezető pénzügyi állításokat, és kérem az AI-t, hogy a szórakozási értéket hangsúlyozza a befektetési narratíva helyett.', score: 10 },
+      { id: 'c', text: 'Jelentem az AI fejlesztőinek, hogy hibás a modell.', score: 3 },
+      { id: 'd', text: 'Kicsit átfogalmazom, hogy kevésbé legyen direkten kimondva, de az üzenet maradjon.', score: 1 }
+    ]
+  }
+];
+
+// ===== NAME INPUT =====
+const nameInput = document.getElementById('candidateName');
+const startBtn = document.getElementById('startBtn');
+
+nameInput.addEventListener('input', () => {
+  startBtn.disabled = nameInput.value.trim().length < 2;
+});
+
+nameInput.addEventListener('keydown', (e) => {
+  sfxType();
+  if (e.key === 'Enter' && !startBtn.disabled) startTest();
+});
+
+// ===== START =====
+function startTest() {
+  sfxNav();
+  document.getElementById('welcomeScreen').classList.remove('active');
+  document.getElementById('questionScreen').classList.add('active');
+  document.getElementById('timerBar').style.display = 'flex';
+  document.getElementById('progressTrack').style.display = 'block';
+  testStarted = true;
+  startTimer();
+  renderQuestion();
+}
+
+// ===== TIMER =====
+function startTimer() {
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    totalSeconds--;
+    updateTimerDisplay();
+    if (totalSeconds <= 0) {
+      clearInterval(timerInterval);
+      submitTest();
+    }
+    // warning beep at 5 min
+    if (totalSeconds === 300) { playTone(880, 'sine', 0.3, 0.15); }
+    // danger beep every 30s in last 2 min
+    if (totalSeconds <= 120 && totalSeconds % 30 === 0 && totalSeconds > 0) { playTone(660, 'square', 0.1, 0.1); }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  const display = document.getElementById('timerDisplay');
+  display.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  display.className = 'timer-display' + (totalSeconds <= 120 ? ' danger' : totalSeconds <= 300 ? ' warning' : '');
+}
+
+// ===== RENDER QUESTION =====
+function renderQuestion() {
+  const q = questions[currentQ];
+  const wrap = document.getElementById('questionContent');
+  const total = questions.length;
+
+  document.getElementById('questionCounter').textContent = `${currentQ + 1} / ${total}`;
+  document.getElementById('progressFill').style.width = `${((currentQ) / total) * 100}%`;
+
+  let html = `
+    <div class="fade-in">
+      <div class="q-header">
+        <span class="q-number">Kérdés ${currentQ + 1}/${total}</span>
+        <span class="q-points">${q.points} pont</span>
+      </div>
+      <div class="q-category">${q.category}</div>
+      <h2 class="q-title">${q.title}</h2>
+      <div class="q-description">${q.description}</div>
+  `;
+
+  if (q.aiText) {
+    html += `<div class="ai-text-block"><p>${q.aiText}</p></div>`;
+  }
+
+  if (q.hint) {
+    html += `<div class="hint-box"><span class="hint-icon">💡</span> ${q.hint.replace('💡 ','')}</div>`;
+  }
+
+  if (q.type === 'mc') {
+    html += `<div class="mc-options">`;
+    q.options.forEach(opt => {
+      const sel = answers[q.id] === opt.id ? 'selected' : '';
+      html += `
+        <div class="mc-option ${sel}" onclick="selectMC('${q.id}','${opt.id}')">
+          <div class="mc-dot"></div>
+          <div class="mc-text">${opt.text}</div>
+        </div>`;
+    });
+    html += `</div>`;
+  }
+
+  if (q.type === 'multiselect') {
+    if (q.scoringNote) {
+      html += `<div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;font-family:'JetBrains Mono',monospace;">${q.scoringNote}</div>`;
+    }
+    html += `<div class="checkbox-options">`;
+    const selected = answers[q.id] || [];
+    q.options.forEach(opt => {
+      const sel = selected.includes(opt.id) ? 'selected' : '';
+      html += `
+        <div class="checkbox-option ${sel}" onclick="toggleCheck('${q.id}','${opt.id}')">
+          <div class="cb-box"></div>
+          <div class="mc-text">${opt.text}</div>
+        </div>`;
+    });
+    html += `</div>`;
+  }
+
+  if (q.type === 'text') {
+    const val = answers[q.id] || '';
+    html += `
+      <div class="text-area-wrap">
+        <div class="text-area-label">
+          <span>✏️ Válaszod</span>
+          <span class="char-count" id="charCount-${q.id}">${val.length} karakter</span>
+        </div>
+        <textarea class="text-area" id="textarea-${q.id}" rows="8" placeholder="${q.placeholder || 'Írd ide a válaszod...'}" oninput="onTextInput('${q.id}')">${val}</textarea>
+      </div>`;
+  }
+
+  // Nav
+  html += `<div class="nav-row">`;
+  if (currentQ > 0) {
+    html += `<button class="nav-btn prev" onclick="prevQ()">← Előző</button>`;
+  } else {
+    html += `<div></div>`;
+  }
+
+  html += `<div class="step-dots">`;
+  questions.forEach((_, i) => {
+    let cls = 'step-dot';
+    if (i === currentQ) cls += ' current';
+    else if (answers[questions[i].id] !== undefined) cls += ' done';
+    html += `<div class="${cls}" onclick="goToQ(${i})"></div>`;
+  });
+  html += `</div>`;
+
+  if (currentQ < total - 1) {
+    html += `<button class="nav-btn next" onclick="nextQ()">Következő →</button>`;
+  } else {
+    html += `<button class="nav-btn submit" onclick="submitTest()">Leadás ✓</button>`;
+  }
+
+  html += `</div></div>`;
+  wrap.innerHTML = html;
+
+  // Focus textarea if text type
+  if (q.type === 'text') {
+    setTimeout(() => {
+      const ta = document.getElementById(`textarea-${q.id}`);
+      if (ta) ta.focus();
+    }, 100);
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ===== INTERACTIONS =====
+function selectMC(qId, optId) {
+  sfxSelect();
+  answers[qId] = optId;
+  renderQuestion();
+}
+
+function toggleCheck(qId, optId) {
+  sfxSelect();
+  if (!answers[qId]) answers[qId] = [];
+  const idx = answers[qId].indexOf(optId);
+  if (idx > -1) answers[qId].splice(idx, 1);
+  else answers[qId].push(optId);
+  renderQuestion();
+}
+
+function onTextInput(qId) {
+  const ta = document.getElementById(`textarea-${qId}`);
+  answers[qId] = ta.value;
+  const counter = document.getElementById(`charCount-${qId}`);
+  if (counter) counter.textContent = `${ta.value.length} karakter`;
+}
+
+function nextQ() {
+  sfxNav();
+  if (currentQ < questions.length - 1) { currentQ++; renderQuestion(); }
+}
+
+function prevQ() {
+  sfxNav();
+  if (currentQ > 0) { currentQ--; renderQuestion(); }
+}
+
+function goToQ(i) {
+  sfxClick();
+  currentQ = i;
+  renderQuestion();
+}
+
+// ===== SCORING =====
+function calculateScore() {
+  let total = 0;
+  let breakdown = [];
+
+  questions.forEach(q => {
+    let pts = 0;
+    const ans = answers[q.id];
+
+    if (q.type === 'mc') {
+      const chosen = q.options.find(o => o.id === ans);
+      pts = chosen ? chosen.score : 0;
+    }
+
+    if (q.type === 'multiselect') {
+      const selected = ans || [];
+      selected.forEach(id => {
+        const opt = q.options.find(o => o.id === id);
+        if (opt && opt.correct) pts += 3;
+        else if (opt && !opt.correct) pts -= 2;
+      });
+      pts = Math.max(0, Math.min(q.points, pts));
+    }
+
+    if (q.type === 'text') {
+      const text = (ans || '').toLowerCase();
+      const len = text.length;
+
+      // Length score (0-40% of points)
+      let lengthScore = 0;
+      if (len >= (q.minLength || 100)) lengthScore = q.points * 0.4;
+      else if (len > 50) lengthScore = q.points * 0.2;
+      else if (len > 20) lengthScore = q.points * 0.1;
+
+      // Keyword score (0-60% of points)
+      let kwHits = 0;
+      const kws = q.keywords || [];
+      kws.forEach(kw => { if (text.includes(kw.toLowerCase())) kwHits++; });
+      const kwRatio = kws.length > 0 ? Math.min(1, kwHits / Math.ceil(kws.length * 0.35)) : 0;
+      let kwScore = q.points * 0.6 * kwRatio;
+
+      pts = Math.round(lengthScore + kwScore);
+      pts = Math.min(q.points, pts);
+    }
+
+    total += pts;
+    breakdown.push({ title: q.title, category: q.category, points: pts, max: q.points });
+  });
+
+  return { total, breakdown };
+}
+
+// ===== SUBMIT =====
+function submitTest() {
+  sfxSubmit();
+  clearInterval(timerInterval);
+
+  document.getElementById('questionScreen').classList.remove('active');
+  document.getElementById('resultScreen').classList.add('active');
+  document.getElementById('progressFill').style.width = '100%';
+
+  const { total, breakdown } = calculateScore();
+  const passed = total >= 60;
+
+  setTimeout(() => {
+    if (passed) {
+      sfxSuccess();
+      launchConfetti();
+    } else {
+      sfxNeutral();
+    }
+  }, 800);
+
+  const ringCircumference = 2 * Math.PI * 95;
+  const dashOffset = ringCircumference - (total / 100) * ringCircumference;
+  const strokeColor = passed ? 'var(--neon-green)' : 'var(--neon-blue)';
+  const glowFilter = passed ? 'drop-shadow(0 0 12px rgba(0,255,136,0.5))' : 'drop-shadow(0 0 12px rgba(0,212,255,0.3))';
+
+  let html = `
+    <div class="fade-in">
+      <div class="result-score-wrap">
+        <svg class="result-ring" viewBox="0 0 200 200" style="filter:${glowFilter}">
+          <circle class="result-ring-bg" cx="100" cy="100" r="95"/>
+          <circle class="result-ring-fill" cx="100" cy="100" r="95"
+            stroke="${strokeColor}"
+            stroke-dasharray="${ringCircumference}"
+            stroke-dashoffset="${ringCircumference}"
+            id="scoreRing"/>
+        </svg>
+        <div class="result-score-text">
+          <div class="result-score-number" style="color:${strokeColor};text-shadow:${passed ? 'var(--glow-green)' : 'var(--glow-blue)'}" id="scoreCounter">0</div>
+          <div class="result-score-label">/ 100 pont</div>
+        </div>
+      </div>
+  `;
+
+  if (passed) {
+    html += `
+      <div class="result-message" style="color:var(--neon-green);text-shadow:var(--glow-green);">
+        ✦ Megfelelt! ✦
+      </div>
+      <div class="result-sub">
+        Gratulálunk, <strong>${nameInput.value}</strong>! Az AI prompting készségeid erős alapot mutatnak. 
+        Az eredményeidet továbbítjuk az Innovációs Osztály csapatának.
+      </div>
+    `;
+  } else {
+    html += `
+      <div class="result-message" style="color:var(--neon-blue);text-shadow:var(--glow-blue);">
+        Elküldve további értékelésre.
+      </div>
+      <div class="result-sub">
+        Köszönjük, <strong>${nameInput.value}</strong>! Az eredményeidet továbbítottuk a csapatnak, 
+        akik részletesen átnézik a válaszaidat.
+      </div>
+    `;
+  }
+
+  html += `<div class="result-breakdown">`;
+  breakdown.forEach(b => {
+    const pct = b.max > 0 ? Math.round((b.points / b.max) * 100) : 0;
+    let color = pct >= 75 ? 'var(--neon-green)' : pct >= 40 ? 'var(--neon-yellow)' : 'var(--neon-magenta)';
+    html += `
+      <div class="breakdown-card">
+        <div class="breakdown-label">${b.category}</div>
+        <div class="breakdown-score" style="color:${color}">${b.points}<span class="breakdown-max">/${b.max}</span></div>
+      </div>`;
+  });
+  html += `</div></div>`;
+
+  document.getElementById('resultContent').innerHTML = html;
+
+  // Animate ring + counter
+  setTimeout(() => {
+    document.getElementById('scoreRing').style.strokeDashoffset = dashOffset;
+    animateCounter('scoreCounter', 0, total, 1500);
+  }, 300);
+}
+
+function animateCounter(id, start, end, duration) {
+  const el = document.getElementById(id);
+  const startTime = performance.now();
+  function tick(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(start + (end - start) * eased);
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+// ===== CONFETTI =====
+function launchConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particles = [];
+  const colors = ['#00ff88', '#ff006e', '#00d4ff', '#a855f7', '#facc15', '#fff'];
+
+  for (let i = 0; i < 150; i++) {
+    particles.push({
+      x: canvas.width / 2 + (Math.random() - 0.5) * 200,
+      y: canvas.height / 2,
+      vx: (Math.random() - 0.5) * 16,
+      vy: Math.random() * -18 - 4,
+      w: Math.random() * 8 + 4,
+      h: Math.random() * 6 + 2,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rotation: Math.random() * 360,
+      rotSpeed: (Math.random() - 0.5) * 12,
+      gravity: 0.25 + Math.random() * 0.15,
+      life: 1
+    });
+  }
+
+  let frame = 0;
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let alive = false;
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.vy += p.gravity;
+      p.y += p.vy;
+      p.rotation += p.rotSpeed;
+      p.vx *= 0.99;
+      p.life -= 0.005;
+
+      if (p.life > 0 && p.y < canvas.height + 50) {
+        alive = true;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation * Math.PI / 180);
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ctx.restore();
+      }
+    });
+    frame++;
+    if (alive && frame < 300) requestAnimationFrame(animate);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  animate();
+}
+</script>
+</body>
+</html>
