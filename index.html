@@ -729,7 +729,7 @@ body::before {
         </div>
         <div class="rule-card">
           <div class="rule-icon">💯</div>
-          <div class="rule-value">100</div>
+          <div class="rule-value">115</div>
           <div class="rule-label">Max. pont</div>
         </div>
         <div class="rule-card">
@@ -910,6 +910,27 @@ const questions = [
       { id: 'b', text: 'Módosítom a promptot, hogy explicit kizárja a félrevezető pénzügyi állításokat, és kérem az AI-t, hogy a szórakozási értéket hangsúlyozza a befektetési narratíva helyett.', score: 10 },
       { id: 'c', text: 'Jelentem az AI fejlesztőinek, hogy hibás a modell.', score: 3 },
       { id: 'd', text: 'Kicsit átfogalmazom, hogy kevésbé legyen direkten kimondva, de az üzenet maradjon.', score: 1 }
+    ]
+  },
+  {
+    id: 'q8',
+    type: 'text',
+    category: 'Márkaépítés & Stratégia',
+    points: 15,
+    title: 'Rebranding stratégia AI-val',
+    description: 'A Szerencsejáték Zrt. gambling penetrációja 78%-ról 66%-ra esett, a fiatal korosztály elveszett, a bizalom megrendült. A vezetőség rebranding mellett döntött. <strong>Írj egy komplex promptot</strong> egy AI-nak, ami egy teljes rebranding stratégiát dolgozna ki — a márkaidentitástól a kommunikációs hangnemen át a vizuális irányig.',
+    placeholder: 'Írd ide a promptodat... A legjobb megoldás figyelembe veszi: szerepkör, célcsoportok, jelenlegi brand problémák, elvárt output struktúra, korlátok (pl. állami cég, felelős játék), KPI-ok...',
+    hint: '💡 Gondolj arra: milyen szerepkört adsz az AI-nak (brand stratéga? kreatív igazgató?)? Hogyan definiálod a jelenlegi brand problémákat? Mit kérsz konkrétan outputként — névötletek, vizuális irány, tone of voice, pozicionálás? Milyen korlátokat (állami cég, szabályozás, felelős játék) kell figyelembe venni?',
+    minLength: 180,
+    keywords: [
+      'márka', 'brand', 'identitás', 'identity', 'pozicionálás', 'positioning',
+      'célcsoport', 'target', 'fiatal', 'gen z', 'bizalom', 'trust',
+      'vizuális', 'visual', 'logo', 'szín', 'color', 'stílus', 'style',
+      'kommunikáció', 'communication', 'tone', 'hangnem', 'üzenet', 'message',
+      'értékek', 'values', 'megkülönböztet', 'differenci', 'verseny', 'competi',
+      'digitális', 'digital', 'kampány', 'campaign', 'felelős', 'responsible',
+      'állami', 'stratégi', 'kpi', 'mér', 'slogan', 'naming', 'piaci', 'market',
+      'társadalmi', 'social', 'rebranding', 'output', 'struktúr', 'formátum'
     ]
   }
 ];
@@ -1172,7 +1193,7 @@ function submitTest() {
   document.getElementById('progressFill').style.width = '100%';
 
   const { total, breakdown } = calculateScore();
-  const passed = total >= 60;
+  const passed = total >= 69;
 
   setTimeout(() => {
     if (passed) {
@@ -1184,7 +1205,7 @@ function submitTest() {
   }, 800);
 
   const ringCircumference = 2 * Math.PI * 95;
-  const dashOffset = ringCircumference - (total / 100) * ringCircumference;
+  const dashOffset = ringCircumference - (total / 115) * ringCircumference;
   const strokeColor = passed ? 'var(--neon-green)' : 'var(--neon-blue)';
   const glowFilter = passed ? 'drop-shadow(0 0 12px rgba(0,255,136,0.5))' : 'drop-shadow(0 0 12px rgba(0,212,255,0.3))';
 
@@ -1201,7 +1222,7 @@ function submitTest() {
         </svg>
         <div class="result-score-text">
           <div class="result-score-number" style="color:${strokeColor};text-shadow:${passed ? 'var(--glow-green)' : 'var(--glow-blue)'}" id="scoreCounter">0</div>
-          <div class="result-score-label">/ 100 pont</div>
+          <div class="result-score-label">/ 115 pont</div>
         </div>
       </div>
   `;
