@@ -322,6 +322,58 @@
   .tip .bulb { flex: none; font-size: 16px; line-height: 1.3; }
   .tip.bonus { background: rgba(116,198,157,.1); border-color: rgba(116,198,157,.4); color: #d6f5e2; }
 
+  /* ---- Prompt box (copyable AI spell) ---- */
+  .promptbox {
+    margin-top: 14px;
+    background: rgba(0,0,0,.45);
+    border: 1.5px solid rgba(180,235,200,.24);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .promptbox .ph {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 10px 9px 13px;
+    background: rgba(0,0,0,.3);
+    border-bottom: 1px solid rgba(180,235,200,.15);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: .5px;
+    color: var(--gold);
+  }
+  .promptbox code {
+    display: block;
+    padding: 12px 14px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: #e2f7ea;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 168px;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .promptbox code::-webkit-scrollbar { width: 8px; }
+  .promptbox code::-webkit-scrollbar-thumb { background: rgba(180,235,200,.25); border-radius: 99px; }
+  .copybtn {
+    flex: none;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg, var(--lime), #40916c);
+    color: #0c241a;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 9px;
+    transition: transform .15s cubic-bezier(.34,1.56,.64,1), background .2s;
+  }
+  .copybtn:hover { transform: translateY(-1px) scale(1.04); }
+  .copybtn:active { transform: scale(.95); }
+
   .next {
     margin-top: 16px;
     width: 100%;
@@ -456,7 +508,7 @@
     <span class="hud-spacer"></span>
 
     <div class="progress" aria-live="polite">
-      <span class="lvl" id="lvlText">1/5 pálya</span>
+      <span class="lvl" id="lvlText">1/6 pálya</span>
       <span class="checks" id="checkText">0 pipa</span>
       <span class="pbar"><i id="pbarFill"></i></span>
     </div>
@@ -520,48 +572,60 @@
   const LEVELS = [
     {
       tag: "1. pálya",
+      title: "A varázsige",
+      intro: "Az AI-nak elég elmondani, mit szeretnél — és ő megírja helyetted a kódot. Másold be ezt a varázsigét bármelyik AI-ba, és kész is az első kis weboldalad: egy űr-kvíz!",
+      tasks: [
+        { label: "Nyiss meg egy AI-csevegőt (pl. ChatGPT, Claude vagy Gemini).", reward: "grass" },
+        { label: "Másold be az alábbi varázsigét, és küldd el.", reward: "grass" },
+        { label: "A kapott kódot mentsd el index.html néven a gépedre.", reward: "succulent" },
+      ],
+      prompt: "Készíts egyetlen, önálló index.html fájlt (HTML, CSS és JavaScript egyetlen fájlban, külső könyvtár nélkül): egy vidám, 10 kérdéses feleletválasztós kvíz az űrről és a bolygókról. Minden kérdéshez 4 válasz tartozzon, pontosan 1 helyes. Jelezd, ha jól vagy rosszul válaszoltam, a végén írd ki a pontszámot, és legyen egy „Újra” gomb. Színes, játékos dizájn, nagy gombokkal. A válaszod KIZÁRÓLAG a teljes kód legyen.",
+      tip: "Bármelyik ingyenes AI jó. Ha nem tetszik az eredmény, nyugodtan kérd, hogy „csináld szebbre” vagy „tegyél bele nehezebb kérdéseket is”.",
+    },
+    {
+      tag: "2. pálya",
       title: "A varázsmappa",
       intro: "A weboldalad fájljai együtt laknak egy mappában — ez a projekt. A Vercel pont ezt a mappát teszi majd ki az internetre.",
       tasks: [
         { label: "Tedd EGY mappába az AI által generált összes fájlt.", reward: "grass" },
-        { label: "Ellenőrizd, hogy a mappa tetején ott van-e az index.html (ez a kezdőoldal).", reward: "grass" },
+        { label: "Ellenőrizd, hogy a mappa tetején ott van-e az index.html (ez a kezdőoldal).", reward: "succulent" },
       ],
       tip: "Ha az AI React/Vite/Next appot készített (van package.json), az is jó — a Vercel felismeri és buildeli. Ilyenkor a TELJES projektmappát (a package.json-nal együtt) húzd majd be.",
     },
     {
-      tag: "2. pálya",
+      tag: "3. pálya",
       title: "A varázskönyv",
       intro: "A Vercel egy ingyenes házigazda (hosting): felteszi az oldaladat a netre, és kapsz egy linket, amit bárki megnyithat.",
       tasks: [
-        { label: "Nyisd meg a vercel.com oldalt.", reward: "succulent" },
-        { label: "Regisztrálj ingyen (e-maillel vagy GitHub-fiókkal) — ez az ingyenes „Hobby” csomag.", reward: "cactus" },
-      ],
-    },
-    {
-      tag: "3. pálya",
-      title: "A teleportkapu",
-      intro: "A Vercel Drop a legegyszerűbb út: nem kell se Git, se terminál, se telepítés — csak ráhúzod a mappát a böngészőre.",
-      tasks: [
-        { label: "Jelentkezz be a Vercelre.", reward: "bush" },
-        { label: "Menj a vercel.com/drop címre.", reward: "sapling" },
+        { label: "Nyisd meg a vercel.com oldalt.", reward: "cactus" },
+        { label: "Regisztrálj ingyen (e-maillel vagy GitHub-fiókkal) — ez az ingyenes „Hobby” csomag.", reward: "bush" },
       ],
     },
     {
       tag: "4. pálya",
-      title: "Életre keltés",
-      intro: "A deploy azt jelenti: a Vercel feldolgozza a fájljaidat és kiteszi a netre. Minden deploy után kapsz egy saját, élő linket.",
+      title: "A teleportkapu",
+      intro: "A Vercel Drop a legegyszerűbb út: nem kell se Git, se terminál, se telepítés — csak ráhúzod a mappát a böngészőre.",
       tasks: [
-        { label: "Húzd rá a projektmappádat a vercel.com/drop oldalra.", reward: "tree" },
-        { label: "Adj nevet a projektnek, és válaszd ki a saját fiókodat (csapatodat).", reward: "flower" },
-        { label: "Kattints a Deploy gombra, és várj pár másodpercet.", reward: "butterfly" },
+        { label: "Jelentkezz be a Vercelre.", reward: "sapling" },
+        { label: "Menj a vercel.com/drop címre.", reward: "tree" },
       ],
     },
     {
       tag: "5. pálya",
+      title: "Életre keltés",
+      intro: "A deploy azt jelenti: a Vercel feldolgozza a fájljaidat és kiteszi a netre. Minden deploy után kapsz egy saját, élő linket.",
+      tasks: [
+        { label: "Húzd rá a projektmappádat a vercel.com/drop oldalra.", reward: "flower" },
+        { label: "Adj nevet a projektnek, és válaszd ki a saját fiókodat (csapatodat).", reward: "butterfly" },
+        { label: "Kattints a Deploy gombra, és várj pár másodpercet.", reward: "frog" },
+      ],
+    },
+    {
+      tag: "6. pálya",
       title: "A megosztás",
       intro: "A kapott link nyilvános: aki megkapja, pontosan ugyanazt látja, amit te. Fent vagy az interneten!",
       tasks: [
-        { label: "Másold ki a kapott linket (valami…vercel.app).", reward: "frog" },
+        { label: "Másold ki a kapott linket (valami…vercel.app).", reward: "bird" },
         { label: "Küldd el bárkinek — ő is meg tudja nyitni a böngészőjében.", reward: "bird" },
       ],
       bonus: "Frissítés? Ha módosítasz a fájlokon, húzd rá újra a mappát a vercel.com/drop-ra. Profi szint: kösd össze a projektet GitHub-bal a folyamatos, automatikus frissítésekhez.",
@@ -571,7 +635,7 @@
   // ============================================================
   //  State
   // ============================================================
-  const SAVE_KEY = "deploy-dzsungel-v1";
+  const SAVE_KEY = "deploy-dzsungel-v2";
   let state = {
     level: 0,            // 0..LEVELS.length (== final)
     stage: 0,            // growth stage 0..6
@@ -620,6 +684,7 @@
   }
 
   // Entity stores — cumulative, never reset between levels
+  const builtStages = new Set(); // which growth-stage batches are already in the scene
   let plants = [];   // {type, x, ry(0..1 relative across width), scale, phase, seed, color}
   let animals = [];  // movers / static creatures
   let particles = []; // transient bursts / cursor trail / sprouts
@@ -882,22 +947,38 @@
   }
 
   function drawMonkey(a, t) {
-    const swing = REDUCED ? 0 : Math.sin(t * 0.0022 + a.phase) * 0.28;
+    // pivot (0,0) is the gripping hand on the branch; body dangles below (pendulum)
+    const swing = REDUCED ? 0 : Math.sin(t * 0.0022 + a.phase) * 0.22;
+    const wave = REDUCED ? 0.35 : (0.2 + Math.abs(Math.sin(t * 0.006 + a.phase)) * 0.6);
     ctx.save();
     ctx.translate(a.x, a.y);
     ctx.rotate(swing);
     ctx.scale(a.scale, a.scale);
-    ctx.strokeStyle = "#6b4423"; ctx.lineWidth = 3; ctx.lineCap = "round";
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-2, -22); ctx.stroke(); // arm to vine
     const c = "#8a5a2b";
-    leafBlob(0, 14, 12, 16, 0, c);          // body
-    leafBlob(0, -2, 11, 10, 0, c);          // head
-    leafBlob(-9, -4, 4.5, 4.5, 0, c); leafBlob(9, -4, 4.5, 4.5, 0, c); // ears
-    leafBlob(0, 1, 7, 6, 0, "#d9b38c");     // face
+    // liana the monkey grips, rising up into the canopy
+    ctx.strokeStyle = "#40916c"; ctx.lineWidth = 3; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(-1, -18); ctx.quadraticCurveTo(2, -8, 0, 0); ctx.stroke();
+    // gripping hand
+    ctx.fillStyle = c; ctx.beginPath(); ctx.arc(0, 0, 3.2, 0, TAU); ctx.fill();
+    // holding arm down to shoulder
+    ctx.strokeStyle = c; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(0, 1); ctx.lineTo(0, 15); ctx.stroke();
+    // body + legs
+    leafBlob(0, 32, 12, 15, 0, c);
+    leafBlob(-6, 45, 5, 6, 0.2, c); leafBlob(6, 45, 5, 6, -0.2, c);
+    // free, waving arm
+    ctx.strokeStyle = c; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(2, 22); ctx.lineTo(12 + wave * 4, 24 - wave * 9); ctx.stroke();
+    ctx.fillStyle = c; ctx.beginPath(); ctx.arc(12 + wave * 4, 24 - wave * 9, 3, 0, TAU); ctx.fill();
+    // head
+    leafBlob(0, 16, 11, 10, 0, c);
+    leafBlob(-9, 13, 4.5, 4.5, 0, c); leafBlob(9, 13, 4.5, 4.5, 0, c); // ears
+    leafBlob(0, 19, 7, 6, 0, "#d9b38c"); // face
     ctx.fillStyle = "#10261c";
-    ctx.beginPath(); ctx.arc(-3, -1, 1.4, 0, TAU); ctx.arc(3, -1, 1.4, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.arc(-3, 17, 1.4, 0, TAU); ctx.arc(3, 17, 1.4, 0, TAU); ctx.fill();
+    // curling tail
     ctx.strokeStyle = c; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(8, 18); ctx.quadraticCurveTo(24, 16, 20, 30); ctx.stroke(); // tail
+    ctx.beginPath(); ctx.moveTo(8, 36); ctx.quadraticCurveTo(26, 34, 22, 48); ctx.stroke();
     ctx.restore();
   }
 
@@ -953,7 +1034,7 @@
   }
 
   function addAnimal(type, opts = {}) {
-    const cap = { butterfly: 8, dragonfly: 6, firefly: 26, frog: 6, bird: 7, monkey: 4, jaguar: 1, beetle: 8 };
+    const cap = { butterfly: 8, dragonfly: 6, firefly: 26, frog: 6, bird: 7, monkey: 7, jaguar: 1, beetle: 8 };
     const count = animals.filter(a => a.type === type).length;
     if (cap[type] != null && count >= cap[type]) return;
     const a = Object.assign({ type, phase: rand(0, TAU), blink: 0 }, opts);
@@ -992,7 +1073,19 @@
       color: pick(["#e63946","#f4a261","#457b9d","#ffb703"]), tail: pick(["#ff006e","#fb8500","#3a86ff"]) });
   }
   function spawnMonkey() {
-    addAnimal("monkey", { rx: rand(0.12, 0.88), x: rand(W*0.12,W*0.88), y: rand(H*0.18, H*0.34), scale: rand(0.7, 1) });
+    // monkeys must hang on real trees — attach to one of the biggest available
+    const trees = plants.filter(p => p.type === "tree");
+    if (trees.length === 0) return; // no tree, no monkey (avoids "hanging in the void")
+    trees.sort((a, b) => b.scale - a.scale);
+    const tree = trees[(Math.random() * Math.min(trees.length, 5)) | 0];
+    const canopyW = 40 * tree.scale;
+    addAnimal("monkey", {
+      tree,
+      dx: rand(-canopyW * 0.55, canopyW * 0.55),  // spread across the canopy
+      dy: rand(8, 30) * tree.scale,               // grip the lower canopy / a branch
+      x: tree.x, y: groundY + tree.yoff - 92 * tree.scale,
+      scale: clamp(tree.scale * 0.72, 0.58, 1.0),
+    });
   }
   function spawnJaguar() {
     const rx = Math.random()<.5?0.07:0.93;
@@ -1008,7 +1101,7 @@
   // ============================================================
   function populateStage(stage) {
     // Build the whole scene up to `stage` from scratch (used on load / reset)
-    plants = []; animals = []; particles = [];
+    plants = []; animals = []; particles = []; builtStages.clear();
     for (let s = 0; s <= stage; s++) addStageBatch(s, true);
     beams = stage >= 5 ? 1 : stage >= 4 ? 0.45 : stage >= 3 ? 0.18 : 0;
     pollen = stage >= 5 ? 24 : stage >= 4 ? 14 : stage >= 2 ? 6 : 0;
@@ -1016,6 +1109,8 @@
   }
 
   function addStageBatch(stage, silent) {
+    if (builtStages.has(stage)) return; // never add the same stage twice
+    builtStages.add(stage);
     const both = (fn, n) => { for (let i = 0; i < n; i++) fn(rand(0.05, 0.95)); };
     switch (stage) {
       case 0:
@@ -1047,7 +1142,7 @@
         for (let i=0;i<2;i++) spawnButterfly();
         break;
       case 5:
-        addPlant("tree", 0.08, 1.2); addPlant("tree", 0.92, 1.2); addPlant("tree", 0.45, 1.25);
+        addPlant("tree", 0.08, 1.3); addPlant("tree", 0.92, 1.3); addPlant("tree", 0.45, 1.4);
         for (let i=0;i<4;i++) addPlant("vine", rand(0.05,0.95), rand(1,1.4));
         for (let i=0;i<4;i++) addPlant("flower", rand(0.05,0.95), 1.1);
         for (let i=0;i<3;i++) spawnMonkey();
@@ -1056,11 +1151,13 @@
         for (let i=0;i<3;i++) spawnButterfly();
         break;
       case 6:
-        addPlant("tree", 0.22, 1.3); addPlant("tree", 0.6, 1.35); addPlant("tree", 0.78, 1.2);
-        for (let i=0;i<5;i++) addPlant("vine", rand(0.05,0.95), rand(1,1.5));
+        // big, dense canopy for the finale — plenty for the monkeys to swing on
+        addPlant("tree", 0.2, 1.5); addPlant("tree", 0.5, 1.55); addPlant("tree", 0.8, 1.45);
+        addPlant("tree", 0.34, 1.3); addPlant("tree", 0.66, 1.35);
+        for (let i=0;i<6;i++) addPlant("vine", rand(0.05,0.95), rand(1.1,1.6));
         for (let i=0;i<6;i++) addPlant("flower", rand(0.05,0.95), 1.2);
         for (let i=0;i<3;i++) addPlant("bush", rand(0.05,0.95), 1.1);
-        spawnMonkey(); spawnMonkey();
+        for (let i=0;i<4;i++) spawnMonkey();
         for (let i=0;i<2;i++) spawnBird();
         for (let i=0;i<4;i++) spawnButterfly();
         for (let i=0;i<2;i++) spawnDragonfly();
@@ -1265,7 +1362,13 @@
   }
 
   function updateAndDrawAnimals(t, dt) {
+    const foreOff = REDUCED ? 0 : mx * 22; // match the plant/foreground parallax
     for (const a of animals) {
+      // monkeys are glued to their tree's canopy (and share its parallax)
+      if (a.type === "monkey" && a.tree) {
+        a.x = a.tree.x + a.dx + foreOff;
+        a.y = groundY + a.tree.yoff - 92 * a.tree.scale + a.dy;
+      }
       if (!REDUCED) {
         switch (a.type) {
           case "butterfly":
@@ -1524,6 +1627,22 @@
     });
     panel.appendChild(tasks);
 
+    if (lv.prompt) {
+      const pb = el("div", "promptbox");
+      const ph = el("div", "ph");
+      const lbl = el("span"); lbl.textContent = "🪄 A VARÁZSIGE";
+      const copyBtn = document.createElement("button");
+      copyBtn.className = "copybtn";
+      copyBtn.type = "button";
+      copyBtn.textContent = "Másolás";
+      copyBtn.addEventListener("click", () => copyText(lv.prompt, copyBtn));
+      ph.appendChild(lbl); ph.appendChild(copyBtn);
+      const code = document.createElement("code");
+      code.textContent = lv.prompt;
+      pb.appendChild(ph); pb.appendChild(code);
+      panel.appendChild(pb);
+    }
+
     if (lv.tip) {
       const tip = el("div", "tip");
       tip.innerHTML = '<span class="bulb">💡</span><span>' + escapeHTML(lv.tip) + '</span>';
@@ -1614,10 +1733,9 @@
     redraw();
   }
 
-  // make sure full stage-6 scene exists when jumping to final
+  // make sure the full stage-6 scene exists when jumping to final (idempotent)
   function populateStageEnsure(stage) {
-    if (animals.filter(a=>a.type==="monkey").length === 0) addStageBatch(5);
-    addStageBatch(6);
+    for (let s = 0; s <= stage; s++) addStageBatch(s);
     beams = 1; pollen = 28; refreshPollen();
   }
 
@@ -1666,8 +1784,10 @@
     logoTimer = setTimeout(() => { logoClicks = 0; }, 1200);
     if (logoClicks === 3) {
       logoClicks = 0;
-      if (Math.random() < 0.5) {
-        const f = spawnFrog(rand(W * 0.3, W * 0.7));
+      // monkeys need a tree to hang on — only summon one if trees exist
+      const hasTrees = plants.some(p => p.type === "tree");
+      if (!hasTrees || Math.random() < 0.5) {
+        spawnFrog(rand(W * 0.3, W * 0.7));
         toast("Egy béka pislantott rád! 🐸");
       } else {
         spawnMonkey();
@@ -1700,6 +1820,33 @@
   function escapeHTML(s) { const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
   // In reduced-motion mode the rAF loop is off, so repaint the static scene on mutations
   function redraw() { if (REDUCED) drawFrame(performance.now()); }
+
+  function copyText(text, btn) {
+    const ok = () => {
+      toast("Varázsige kimásolva! ✨");
+      if (btn) { const o = btn.textContent; btn.textContent = "✓ Kész"; setTimeout(() => { btn.textContent = o; }, 1600); }
+    };
+    const fallback = () => {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.top = "-1000px";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.focus(); ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        ok();
+      } catch (e) { toast("Jelöld ki és másold ki kézzel 🙏"); }
+    };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(ok, fallback);
+      } else { fallback(); }
+    } catch (e) { fallback(); }
+  }
 
   // ============================================================
   //  Boot
