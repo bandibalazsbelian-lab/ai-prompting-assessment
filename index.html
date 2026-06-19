@@ -2,1342 +2,1715 @@
 <html lang="hu">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SzZrt — AI Prompting Assessment</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1b4332">
+<title>Deploy Dzsungel 🌴 — Tanulj meg deployolni!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-:root {
-  --bg-deep: #06060f;
-  --bg-card: #0d0d1a;
-  --bg-card-hover: #111128;
-  --neon-green: #00ff88;
-  --neon-magenta: #ff006e;
-  --neon-blue: #00d4ff;
-  --neon-purple: #a855f7;
-  --neon-yellow: #facc15;
-  --text-primary: #e8e8f0;
-  --text-secondary: #7a7a9e;
-  --text-muted: #44445e;
-  --border: #1a1a35;
-  --glow-green: 0 0 20px rgba(0,255,136,0.3), 0 0 40px rgba(0,255,136,0.1);
-  --glow-magenta: 0 0 20px rgba(255,0,110,0.3), 0 0 40px rgba(255,0,110,0.1);
-  --glow-blue: 0 0 20px rgba(0,212,255,0.3), 0 0 40px rgba(0,212,255,0.1);
-}
-
-html { scroll-behavior: smooth; }
-
-body {
-  background: var(--bg-deep);
-  color: var(--text-primary);
-  font-family: 'Outfit', sans-serif;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-/* Scanline overlay */
-body::after {
-  content: '';
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0,0,0,0.03) 2px,
-    rgba(0,0,0,0.03) 4px
-  );
-  pointer-events: none;
-  z-index: 9999;
-}
-
-/* Grid background */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-image: 
-    linear-gradient(rgba(0,255,136,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,255,136,0.02) 1px, transparent 1px);
-  background-size: 60px 60px;
-  pointer-events: none;
-  z-index: -1;
-}
-
-.container {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 20px 16px;
-  position: relative;
-}
-
-/* ===== TIMER BAR ===== */
-.timer-bar {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: 56px;
-  background: rgba(6,6,15,0.95);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
-  z-index: 1000;
-}
-
-.timer-display {
-  font-family: 'Orbitron', monospace;
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--neon-green);
-  text-shadow: var(--glow-green);
-  letter-spacing: 2px;
-}
-
-.timer-display.warning { color: var(--neon-yellow); text-shadow: 0 0 20px rgba(250,204,21,0.4); }
-.timer-display.danger { color: var(--neon-magenta); text-shadow: var(--glow-magenta); animation: pulse-danger 0.5s ease infinite alternate; }
-
-@keyframes pulse-danger { to { opacity: 0.6; } }
-
-.timer-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 3px;
-  color: var(--text-secondary);
-  font-weight: 600;
-}
-
-.progress-track {
-  position: fixed;
-  top: 56px; left: 0; right: 0;
-  height: 3px;
-  background: var(--border);
-  z-index: 1000;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--neon-green), var(--neon-blue));
-  box-shadow: 0 0 10px var(--neon-green);
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* ===== WELCOME SCREEN ===== */
-.screen { display: none; padding-top: 80px; }
-.screen.active { display: block; }
-
-.welcome-screen {
-  text-align: center;
-  padding-top: 140px;
-  min-height: 100vh;
-}
-
-.logo-mark {
-  font-family: 'Orbitron', monospace;
-  font-size: 12px;
-  letter-spacing: 6px;
-  text-transform: uppercase;
-  color: var(--neon-green);
-  text-shadow: var(--glow-green);
-  margin-bottom: 32px;
-  opacity: 0;
-  animation: fadeInUp 0.8s ease forwards;
-}
-
-.welcome-title {
-  font-family: 'Orbitron', monospace;
-  font-size: clamp(28px, 5vw, 48px);
-  font-weight: 900;
-  line-height: 1.2;
-  margin-bottom: 16px;
-  opacity: 0;
-  animation: fadeInUp 0.8s ease 0.2s forwards;
-}
-
-.welcome-title .accent-green { color: var(--neon-green); text-shadow: var(--glow-green); }
-.welcome-title .accent-magenta { color: var(--neon-magenta); text-shadow: var(--glow-magenta); }
-
-.welcome-sub {
-  font-size: 16px;
-  color: var(--text-secondary);
-  max-width: 540px;
-  margin: 0 auto 48px;
-  line-height: 1.7;
-  opacity: 0;
-  animation: fadeInUp 0.8s ease 0.4s forwards;
-}
-
-.rules-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  max-width: 600px;
-  margin: 0 auto 48px;
-  opacity: 0;
-  animation: fadeInUp 0.8s ease 0.6s forwards;
-}
-
-.rule-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px 16px;
-  text-align: center;
-}
-
-.rule-icon { font-size: 28px; margin-bottom: 8px; }
-.rule-value { font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 700; color: var(--neon-blue); }
-.rule-label { font-size: 11px; color: var(--text-secondary); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
-
-.name-input-wrap {
-  max-width: 400px;
-  margin: 0 auto 32px;
-  opacity: 0;
-  animation: fadeInUp 0.8s ease 0.8s forwards;
-}
-
-.name-input {
-  width: 100%;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px 20px;
-  color: var(--text-primary);
-  font-family: 'Outfit', sans-serif;
-  font-size: 16px;
-  text-align: center;
-  outline: none;
-  transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-.name-input:focus {
-  border-color: var(--neon-green);
-  box-shadow: var(--glow-green);
-}
-
-.name-input::placeholder { color: var(--text-muted); }
-
-.start-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  background: transparent;
-  border: 2px solid var(--neon-green);
-  color: var(--neon-green);
-  font-family: 'Orbitron', monospace;
-  font-size: 14px;
-  font-weight: 700;
-  padding: 16px 40px;
-  border-radius: 8px;
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 3px;
-  transition: all 0.3s;
-  opacity: 0;
-  animation: fadeInUp 0.8s ease 1s forwards;
-}
-
-.start-btn:hover {
-  background: var(--neon-green);
-  color: var(--bg-deep);
-  box-shadow: var(--glow-green);
-}
-
-.start-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-.start-btn:disabled:hover { background: transparent; color: var(--neon-green); box-shadow: none; }
-
-/* ===== QUESTION SCREEN ===== */
-.question-screen { padding-top: 80px; }
-
-.q-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-
-.q-number {
-  font-family: 'Orbitron', monospace;
-  font-size: 11px;
-  letter-spacing: 3px;
-  color: var(--neon-blue);
-  text-shadow: var(--glow-blue);
-  text-transform: uppercase;
-}
-
-.q-points {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
-  color: var(--neon-yellow);
-  background: rgba(250,204,21,0.08);
-  padding: 4px 12px;
-  border-radius: 20px;
-  border: 1px solid rgba(250,204,21,0.2);
-}
-
-.q-category {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: var(--text-muted);
-  margin-bottom: 16px;
-}
-
-.q-title {
-  font-family: 'Orbitron', monospace;
-  font-size: clamp(20px, 3.5vw, 28px);
-  font-weight: 700;
-  line-height: 1.3;
-  margin-bottom: 16px;
-  color: var(--text-primary);
-}
-
-.q-description {
-  font-size: 15px;
-  line-height: 1.8;
-  color: var(--text-secondary);
-  margin-bottom: 28px;
-}
-
-.q-description strong { color: var(--text-primary); font-weight: 600; }
-
-/* AI text block to evaluate */
-.ai-text-block {
-  background: rgba(255,0,110,0.04);
-  border: 1px solid rgba(255,0,110,0.2);
-  border-left: 3px solid var(--neon-magenta);
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 24px;
-  position: relative;
-}
-
-.ai-text-block::before {
-  content: '🤖 AI OUTPUT';
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 2px;
-  color: var(--neon-magenta);
-  position: absolute;
-  top: -10px;
-  left: 16px;
-  background: var(--bg-deep);
-  padding: 0 8px;
-}
-
-.ai-text-block p {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
-  line-height: 1.8;
-  color: var(--text-secondary);
-  font-style: italic;
-}
-
-/* Multiple choice */
-.mc-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
-
-.mc-option {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 16px 20px;
-  cursor: pointer;
-  transition: all 0.25s;
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-}
-
-.mc-option:hover { border-color: rgba(0,212,255,0.3); background: var(--bg-card-hover); }
-
-.mc-option.selected {
-  border-color: var(--neon-green);
-  background: rgba(0,255,136,0.04);
-  box-shadow: inset 0 0 30px rgba(0,255,136,0.02);
-}
-
-.mc-dot {
-  width: 22px; height: 22px;
-  border-radius: 50%;
-  border: 2px solid var(--text-muted);
-  flex-shrink: 0;
-  margin-top: 1px;
-  transition: all 0.25s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.mc-option.selected .mc-dot {
-  border-color: var(--neon-green);
-  background: var(--neon-green);
-  box-shadow: var(--glow-green);
-}
-
-.mc-option.selected .mc-dot::after {
-  content: '✓';
-  color: var(--bg-deep);
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.mc-text { font-size: 14px; line-height: 1.6; color: var(--text-secondary); }
-.mc-option.selected .mc-text { color: var(--text-primary); }
-
-/* Text area */
-.text-area-wrap { margin-bottom: 28px; }
-
-.text-area-label {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: var(--text-muted);
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.char-count {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-left: auto;
-}
-
-.text-area {
-  width: 100%;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 16px 20px;
-  color: var(--text-primary);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
-  line-height: 1.7;
-  resize: vertical;
-  min-height: 140px;
-  outline: none;
-  transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-.text-area:focus {
-  border-color: var(--neon-blue);
-  box-shadow: var(--glow-blue);
-}
-
-.text-area::placeholder { color: var(--text-muted); font-style: italic; }
-
-/* Multi-select checkboxes */
-.checkbox-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 28px; }
-
-.checkbox-option {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px 18px;
-  cursor: pointer;
-  transition: all 0.25s;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.checkbox-option:hover { border-color: rgba(168,85,247,0.3); }
-
-.checkbox-option.selected {
-  border-color: var(--neon-purple);
-  background: rgba(168,85,247,0.04);
-}
-
-.cb-box {
-  width: 20px; height: 20px;
-  border-radius: 5px;
-  border: 2px solid var(--text-muted);
-  flex-shrink: 0;
-  margin-top: 1px;
-  transition: all 0.25s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-}
-
-.checkbox-option.selected .cb-box {
-  border-color: var(--neon-purple);
-  background: var(--neon-purple);
-  box-shadow: 0 0 15px rgba(168,85,247,0.3);
-}
-
-.checkbox-option.selected .cb-box::after { content: '✓'; color: #fff; font-weight: 800; }
-
-/* Navigation */
-.nav-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
-}
-
-.nav-btn {
-  font-family: 'Outfit', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  padding: 12px 28px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.25s;
-  border: none;
-}
-
-.nav-btn.prev {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-}
-
-.nav-btn.prev:hover { border-color: var(--text-secondary); color: var(--text-primary); }
-
-.nav-btn.next {
-  background: linear-gradient(135deg, var(--neon-green), #00cc6a);
-  color: var(--bg-deep);
-  font-weight: 700;
-}
-
-.nav-btn.next:hover { box-shadow: var(--glow-green); transform: translateY(-1px); }
-
-.nav-btn.submit {
-  background: linear-gradient(135deg, var(--neon-magenta), #cc0058);
-  color: #fff;
-  font-weight: 700;
-  font-family: 'Orbitron', monospace;
-  letter-spacing: 1px;
-}
-
-.nav-btn.submit:hover { box-shadow: var(--glow-magenta); transform: translateY(-1px); }
-
-/* Step indicators */
-.step-dots {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-
-.step-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--border);
-  transition: all 0.3s;
-  cursor: pointer;
-}
-
-.step-dot.done { background: var(--neon-green); box-shadow: 0 0 8px rgba(0,255,136,0.4); }
-.step-dot.current { background: var(--neon-blue); box-shadow: 0 0 8px rgba(0,212,255,0.4); width: 24px; border-radius: 4px; }
-
-/* ===== RESULT SCREEN ===== */
-.result-screen {
-  text-align: center;
-  padding-top: 140px;
-  min-height: 100vh;
-}
-
-.result-score-wrap {
-  position: relative;
-  display: inline-block;
-  margin-bottom: 32px;
-}
-
-.result-ring {
-  width: 220px;
-  height: 220px;
-}
-
-.result-ring-bg { fill: none; stroke: var(--border); stroke-width: 6; }
-
-.result-ring-fill {
-  fill: none;
-  stroke-width: 6;
-  stroke-linecap: round;
-  transform: rotate(-90deg);
-  transform-origin: center;
-  transition: stroke-dashoffset 2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.result-score-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-}
-
-.result-score-number {
-  font-family: 'Orbitron', monospace;
-  font-size: 52px;
-  font-weight: 900;
-  line-height: 1;
-}
-
-.result-score-label {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 3px;
-  color: var(--text-secondary);
-  margin-top: 4px;
-}
-
-.result-message {
-  font-family: 'Orbitron', monospace;
-  font-size: clamp(18px, 3vw, 26px);
-  font-weight: 700;
-  margin-bottom: 12px;
-}
-
-.result-sub {
-  font-size: 14px;
-  color: var(--text-secondary);
-  max-width: 500px;
-  margin: 0 auto 40px;
-  line-height: 1.7;
-}
-
-.result-breakdown {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-  max-width: 700px;
-  margin: 0 auto;
-  text-align: left;
-}
-
-.breakdown-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 16px;
-}
-
-.breakdown-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-
-.breakdown-score {
-  font-family: 'Orbitron', monospace;
-  font-size: 22px;
-  font-weight: 700;
-}
-
-.breakdown-max { font-size: 13px; color: var(--text-muted); }
-
-/* Pass confetti canvas */
-#confetti-canvas {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  pointer-events: none;
-  z-index: 9998;
-}
-
-/* ===== ANIMATIONS ===== */
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes glowPulse {
-  0%, 100% { box-shadow: 0 0 20px rgba(0,255,136,0.1); }
-  50% { box-shadow: 0 0 40px rgba(0,255,136,0.3); }
-}
-
-.fade-in { animation: fadeInUp 0.5s ease forwards; }
-
-/* Responsive */
-@media (max-width: 600px) {
-  .rules-grid { grid-template-columns: 1fr; }
-  .result-breakdown { grid-template-columns: 1fr 1fr; }
-  .timer-bar { padding: 0 12px; }
-}
-
-/* Hint box */
-.hint-box {
-  background: rgba(0,212,255,0.04);
-  border: 1px solid rgba(0,212,255,0.15);
-  border-radius: 8px;
-  padding: 14px 18px;
-  margin-bottom: 20px;
-  font-size: 13px;
-  color: var(--neon-blue);
-  line-height: 1.6;
-}
-
-.hint-box .hint-icon { margin-right: 6px; }
-
-/* Muted volume button */
-.sound-toggle {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  border-radius: 6px;
-  padding: 6px 10px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: all 0.2s;
-}
-.sound-toggle:hover { border-color: var(--text-secondary); }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --display: "Baloo 2", "Fredoka", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --body: "Fredoka", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: ui-monospace, "SFMono-Regular", "Cascadia Code", Menlo, Consolas, monospace;
+
+    --ink: #14342b;
+    --ink-soft: #2d4a3e;
+    --leaf: #2d6a4f;
+    --leaf-deep: #1b4332;
+    --lime: #74c69d;
+    --gold: #ffcb47;
+    --gold-deep: #f4a52c;
+    --sun: #ffe08a;
+    --card-bg: rgba(8, 28, 20, 0.62);
+    --card-bg-solid: rgba(10, 32, 24, 0.86);
+    --card-line: rgba(180, 235, 200, 0.22);
+    --text: #f3fff6;
+    --text-soft: #c9e8d4;
+    --focus: #ffe08a;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: var(--body);
+    color: var(--text);
+    background: #e9d8a6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    position: relative;
+  }
+
+  /* ---- Scene canvas ---- */
+  #scene {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 0;
+    touch-action: none;
+  }
+
+  /* Soft vignette + warm light for depth (pure CSS, cheap) */
+  #vignette {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      radial-gradient(120% 80% at 50% 8%, rgba(255, 235, 170, 0.18), rgba(0,0,0,0) 55%),
+      radial-gradient(140% 120% at 50% 120%, rgba(0, 20, 10, 0.55), rgba(0,0,0,0) 60%);
+    transition: opacity .6s ease;
+  }
+
+  /* ---- HUD ---- */
+  #hud {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px clamp(14px, 3vw, 30px);
+    padding-top: max(14px, env(safe-area-inset-top));
+    pointer-events: none;
+  }
+  #hud > * { pointer-events: auto; }
+
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--card-bg);
+    border: 1.5px solid var(--card-line);
+    border-radius: 999px;
+    padding: 8px 16px 8px 10px;
+    color: var(--text);
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(15px, 2.2vw, 20px);
+    letter-spacing: .3px;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 6px 20px rgba(0,0,0,.25);
+    transition: transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .2s;
+    user-select: none;
+  }
+  .logo:hover { transform: translateY(-1px) scale(1.02); }
+  .logo:active { transform: scale(.97); }
+  .logo svg { width: 28px; height: 28px; flex: none; }
+
+  .hud-spacer { flex: 1 1 auto; }
+
+  .progress {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    background: var(--card-bg);
+    border: 1.5px solid var(--card-line);
+    border-radius: 16px;
+    padding: 8px 14px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 6px 20px rgba(0,0,0,.22);
+  }
+  .progress .lvl {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1;
+  }
+  .progress .checks {
+    font-size: 12px;
+    color: var(--text-soft);
+    line-height: 1;
+  }
+  .pbar {
+    width: clamp(90px, 16vw, 160px);
+    height: 8px;
+    border-radius: 99px;
+    background: rgba(0,0,0,.35);
+    overflow: hidden;
+    margin-top: 2px;
+  }
+  .pbar > i {
+    display: block;
+    height: 100%;
+    width: 0%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--lime), var(--gold));
+    transition: width .5s cubic-bezier(.34,1.4,.64,1);
+  }
+
+  .iconbtn {
+    width: 42px; height: 42px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1.5px solid var(--card-line);
+    background: var(--card-bg);
+    color: var(--text);
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 6px 18px rgba(0,0,0,.22);
+    transition: transform .18s cubic-bezier(.34,1.56,.64,1), background .2s;
+    font-size: 18px;
+  }
+  .iconbtn:hover { transform: translateY(-1px) scale(1.05); }
+  .iconbtn:active { transform: scale(.94); }
+  .iconbtn[aria-pressed="true"] { background: rgba(255,203,71,.25); border-color: var(--gold); }
+
+  /* ---- Level panel ---- */
+  #panel-wrap {
+    position: fixed;
+    z-index: 4;
+    left: 50%;
+    bottom: max(18px, env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    width: min(560px, calc(100vw - 28px));
+    z-index: 4;
+  }
+
+  .panel {
+    background: var(--card-bg-solid);
+    border: 1.5px solid var(--card-line);
+    border-radius: 22px;
+    padding: 20px clamp(16px, 3vw, 26px) 22px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 18px 50px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.06);
+    max-height: min(64vh, 560px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    animation: panelIn .5s cubic-bezier(.16,1,.3,1);
+  }
+  @keyframes panelIn {
+    from { opacity: 0; transform: translateY(24px) scale(.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .panel::-webkit-scrollbar { width: 9px; }
+  .panel::-webkit-scrollbar-thumb { background: rgba(180,235,200,.25); border-radius: 99px; }
+
+  .lvl-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--gold);
+    background: rgba(255,203,71,.12);
+    border: 1px solid rgba(255,203,71,.3);
+    border-radius: 8px;
+    padding: 4px 10px;
+    margin-bottom: 10px;
+  }
+
+  .lvl-title {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(22px, 4.4vw, 30px);
+    line-height: 1.08;
+    margin-bottom: 8px;
+    color: #fff;
+    text-shadow: 0 2px 10px rgba(0,0,0,.4);
+  }
+
+  .lvl-intro {
+    font-size: clamp(14px, 2.4vw, 16px);
+    line-height: 1.5;
+    color: var(--text-soft);
+    margin-bottom: 16px;
+  }
+
+  /* ---- Tasks ---- */
+  .tasks { display: flex; flex-direction: column; gap: 10px; }
+
+  .task {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: rgba(0, 0, 0, 0.28);
+    border: 1.5px solid rgba(180,235,200,.14);
+    border-radius: 14px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: background .2s, border-color .2s, transform .12s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .task:hover { background: rgba(0,0,0,.36); border-color: rgba(180,235,200,.3); }
+  .task:has(input:checked) {
+    background: rgba(45,106,79,.4);
+    border-color: rgba(116,198,157,.55);
+  }
+  .task:has(input:focus-visible) {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  .checkbox {
+    position: relative;
+    flex: none;
+    width: 26px; height: 26px;
+    margin-top: 1px;
+  }
+  .checkbox input {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .box {
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    border: 2.5px solid var(--lime);
+    background: rgba(0,0,0,.25);
+    display: grid;
+    place-items: center;
+    transition: transform .25s cubic-bezier(.34,1.8,.5,1), background .2s, border-color .2s;
+  }
+  .box svg { width: 16px; height: 16px; opacity: 0; transform: scale(.3); transition: opacity .2s, transform .3s cubic-bezier(.34,1.8,.5,1); }
+  .checkbox input:checked + .box {
+    background: var(--gold);
+    border-color: var(--gold-deep);
+  }
+  .checkbox input:checked + .box svg { opacity: 1; transform: scale(1); }
+  .checkbox.bounce .box { animation: bounce .5s cubic-bezier(.34,1.7,.5,1); }
+  @keyframes bounce {
+    0% { transform: scale(1); }
+    30% { transform: scale(1.45) rotate(-8deg); }
+    60% { transform: scale(.85) rotate(5deg); }
+    100% { transform: scale(1) rotate(0); }
+  }
+
+  .task .label {
+    font-size: clamp(14px, 2.4vw, 15.5px);
+    line-height: 1.4;
+    color: var(--text);
+    padding-top: 2px;
+    transition: color .2s;
+  }
+  .task:has(input:checked) .label { color: var(--text-soft); }
+
+  .tip {
+    margin-top: 14px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    background: rgba(255,203,71,.1);
+    border: 1px dashed rgba(255,203,71,.4);
+    border-radius: 12px;
+    padding: 11px 13px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #ffeec2;
+  }
+  .tip .bulb { flex: none; font-size: 16px; line-height: 1.3; }
+  .tip.bonus { background: rgba(116,198,157,.1); border-color: rgba(116,198,157,.4); color: #d6f5e2; }
+
+  .next {
+    margin-top: 16px;
+    width: 100%;
+    border: none;
+    border-radius: 14px;
+    padding: 14px 18px;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 16px;
+    color: #14342b;
+    background: linear-gradient(135deg, var(--gold), var(--gold-deep));
+    cursor: pointer;
+    box-shadow: 0 8px 22px rgba(244,165,44,.45), inset 0 1px 0 rgba(255,255,255,.4);
+    transition: transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .2s, opacity .3s;
+    display: none;
+  }
+  .next.show { display: block; animation: nextPop .45s cubic-bezier(.34,1.56,.64,1); }
+  .next:hover { transform: translateY(-2px) scale(1.01); box-shadow: 0 12px 30px rgba(244,165,44,.55); }
+  .next:active { transform: translateY(0) scale(.98); }
+  @keyframes nextPop { from { opacity:0; transform: translateY(12px) scale(.9);} to {opacity:1; transform: translateY(0) scale(1);} }
+
+  /* ---- Final screen ---- */
+  .final {
+    text-align: center;
+    padding: 8px 4px 6px;
+  }
+  .final .crown { font-size: 42px; margin-bottom: 6px; }
+  .final h1 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(26px, 6vw, 44px);
+    line-height: 1.05;
+    color: #fff;
+    text-shadow: 0 3px 18px rgba(0,0,0,.5), 0 0 30px rgba(255,224,138,.35);
+    margin-bottom: 12px;
+  }
+  .final p {
+    color: var(--text-soft);
+    font-size: clamp(14px, 2.6vw, 16px);
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+  .final .again {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,0,0,.3);
+    border: 1.5px solid var(--card-line);
+    color: var(--text);
+    border-radius: 12px;
+    padding: 11px 18px;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform .18s cubic-bezier(.34,1.56,.64,1), background .2s;
+  }
+  .final .again:hover { transform: translateY(-1px) scale(1.03); background: rgba(0,0,0,.45); }
+
+  /* Toast */
+  #toast {
+    position: fixed;
+    left: 50%;
+    top: 76px;
+    transform: translateX(-50%) translateY(-16px);
+    z-index: 9;
+    background: var(--card-bg-solid);
+    border: 1.5px solid var(--card-line);
+    color: var(--text);
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .35s, transform .45s cubic-bezier(.34,1.56,.64,1);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Hint line */
+  #hint {
+    position: fixed;
+    left: 50%;
+    bottom: 6px;
+    transform: translateX(-50%);
+    z-index: 3;
+    font-size: 11px;
+    color: rgba(255,255,255,.5);
+    text-shadow: 0 1px 4px rgba(0,0,0,.6);
+    pointer-events: none;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  @media (max-width: 560px) {
+    #hint { display: none; }
+    .panel { max-height: 60vh; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .08s !important; }
+  }
 </style>
 </head>
 <body>
+  <canvas id="scene" aria-hidden="true"></canvas>
+  <div id="vignette" aria-hidden="true"></div>
 
-<div class="timer-bar" id="timerBar" style="display:none;">
-  <div>
-    <div class="timer-label">Hátralévő idő</div>
-    <div class="timer-display" id="timerDisplay">30:00</div>
-  </div>
-  <div style="display:flex;align-items:center;gap:12px;">
-    <button class="sound-toggle" id="soundToggle" title="Hang ki/be">🔊</button>
-    <div id="questionCounter" style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text-secondary);"></div>
-  </div>
-</div>
+  <header id="hud">
+    <button class="logo" id="logo" title="Kattints rám párszor!">
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M15 16 C15 22 14 26 13 30 L18 30 C17 26 17 21 17 16 Z" fill="#7a5230"/>
+        <path d="M16 15 C10 9 5 9 2 12 C7 11 11 12 15 16 Z" fill="#2d6a4f"/>
+        <path d="M16 15 C22 9 27 9 30 12 C25 11 21 12 16 16 Z" fill="#40916c"/>
+        <path d="M16 15 C12 7 11 3 13 1 C15 4 16 8 16 15 Z" fill="#52b788"/>
+        <path d="M16 15 C20 7 22 4 25 4 C23 7 20 10 16 15 Z" fill="#74c69d"/>
+        <circle cx="16" cy="15" r="2.4" fill="#ffcb47"/>
+      </svg>
+      <span>Deploy Dzsungel</span>
+    </button>
 
-<div class="progress-track" id="progressTrack" style="display:none;">
-  <div class="progress-fill" id="progressFill" style="width:0%"></div>
-</div>
+    <span class="hud-spacer"></span>
 
-<canvas id="confetti-canvas"></canvas>
-
-<div class="container">
-
-  <!-- ===== WELCOME ===== -->
-  <div class="screen active" id="welcomeScreen">
-    <div class="welcome-screen">
-      <div class="logo-mark">Szerencsejáték Zrt. — Innovációs Osztály</div>
-      <h1 class="welcome-title">
-        <span class="accent-green">AI</span> Prompting<br>
-        <span class="accent-magenta">Assessment</span>
-      </h1>
-      <p class="welcome-sub">
-        Ez a teszt azt méri, hogyan használod az AI eszközöket valós üzleti problémák megoldására. 
-        Nem a tudásodat teszteljük — hanem azt, <strong>hogyan gondolkodsz és kommunikálsz egy AI-val</strong>.
-      </p>
-      <div class="rules-grid">
-        <div class="rule-card">
-          <div class="rule-icon">⏱</div>
-          <div class="rule-value">30:00</div>
-          <div class="rule-label">Perc összesen</div>
-        </div>
-        <div class="rule-card">
-          <div class="rule-icon">💯</div>
-          <div class="rule-value">115</div>
-          <div class="rule-label">Max. pont</div>
-        </div>
-        <div class="rule-card">
-          <div class="rule-icon">🤖</div>
-          <div class="rule-value">ANY</div>
-          <div class="rule-label">Bármely AI</div>
-        </div>
-      </div>
-      <div class="name-input-wrap">
-        <input type="text" class="name-input" id="candidateName" placeholder="Írd be a nevedet a kezdéshez..." autocomplete="off">
-      </div>
-      <button class="start-btn" id="startBtn" disabled onclick="startTest()">
-        Indítás <span style="font-size:18px;">→</span>
-      </button>
+    <div class="progress" aria-live="polite">
+      <span class="lvl" id="lvlText">1/5 pálya</span>
+      <span class="checks" id="checkText">0 pipa</span>
+      <span class="pbar"><i id="pbarFill"></i></span>
     </div>
+
+    <button class="iconbtn" id="soundBtn" aria-pressed="false" aria-label="Hang be- és kikapcsolása" title="Hang (alapból néma)">🔇</button>
+  </header>
+
+  <div id="panel-wrap">
+    <section class="panel" id="panel" aria-live="polite"></section>
   </div>
 
-  <!-- ===== QUESTIONS ===== -->
-  <div class="screen" id="questionScreen">
-    <div class="question-screen" id="questionContent"></div>
-  </div>
-
-  <!-- ===== RESULT ===== -->
-  <div class="screen" id="resultScreen">
-    <div class="result-screen" id="resultContent"></div>
-  </div>
-
-</div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <p id="hint">Tipp: pipáld ki a feladatokat • kattints az üres talajra • próbáld begépelni: <b>jungle</b></p>
 
 <script>
-// ===== AUDIO ENGINE =====
-const AudioCtx = window.AudioContext || window.webkitAudioContext;
-let audioCtx = null;
-let soundEnabled = true;
+"use strict";
+(function () {
+  // ============================================================
+  //  Deploy Dzsungel — egyetlen önálló oldal, vanilla JS, Canvas 2D
+  // ============================================================
 
-function ensureAudio() {
-  if (!audioCtx) audioCtx = new AudioCtx();
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-}
+  const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const TAU = Math.PI * 2;
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const pick = arr => arr[(Math.random() * arr.length) | 0];
+  const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+  const lerp = (a, b, t) => a + (b - a) * t;
 
-function playTone(freq, type, duration, vol = 0.15) {
-  if (!soundEnabled) return;
-  ensureAudio();
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.type = type;
-  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-  gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.start();
-  osc.stop(audioCtx.currentTime + duration);
-}
-
-function sfxClick() { playTone(800, 'sine', 0.08, 0.1); }
-function sfxSelect() { playTone(1200, 'sine', 0.1, 0.12); playTone(1600, 'sine', 0.08, 0.08); }
-function sfxNav() { playTone(500, 'triangle', 0.15, 0.1); setTimeout(() => playTone(700, 'triangle', 0.12, 0.08), 60); }
-function sfxType() { playTone(600 + Math.random() * 400, 'sine', 0.03, 0.04); }
-function sfxSubmit() { playTone(400, 'square', 0.1, 0.08); setTimeout(() => playTone(600, 'square', 0.1, 0.08), 100); setTimeout(() => playTone(800, 'square', 0.15, 0.1), 200); }
-
-function sfxSuccess() {
-  const notes = [523, 659, 784, 1047];
-  notes.forEach((f, i) => setTimeout(() => playTone(f, 'sine', 0.3, 0.12), i * 120));
-}
-
-function sfxNeutral() {
-  playTone(440, 'sine', 0.4, 0.1);
-  setTimeout(() => playTone(440, 'triangle', 0.3, 0.06), 200);
-}
-
-document.getElementById('soundToggle').addEventListener('click', function() {
-  soundEnabled = !soundEnabled;
-  this.textContent = soundEnabled ? '🔊' : '🔇';
-  sfxClick();
-});
-
-// ===== STATE =====
-let currentQ = 0;
-let answers = {};
-let timerInterval = null;
-let totalSeconds = 30 * 60;
-let testStarted = false;
-
-// ===== QUESTIONS DATA =====
-const questions = [
-  {
-    id: 'q1',
-    type: 'mc',
-    category: 'Prompt Engineering Alapok',
-    points: 10,
-    title: 'Az eredményes prompt anatómiája',
-    description: 'Egy kollégád a következő promptot írta egy AI-nak: <em>"Írj valamit a lottóról."</em> — Mi a <strong>legfontosabb</strong> első lépés ennek a promptnak a javítására?',
-    options: [
-      { id: 'a', text: 'Hosszabbá tenni — minél több szó, annál jobb az output.', score: 0 },
-      { id: 'b', text: 'Kontextust, szerepkört és elvárt output-formátumot adni (pl. "Mint a SzZrt marketing igazgatója, írj egy 200 szavas elemzést a lottó piaci trendjeiről, bullet point formátumban").', score: 10 },
-      { id: 'c', text: 'Megkérni az AI-t, hogy "gondolkodjon kreatívan" — ez javítja a minőséget.', score: 3 },
-      { id: 'd', text: 'Ugyanazt a promptot többször beküldeni, mert minden alkalommal jobb választ ad.', score: 0 }
-    ]
-  },
-  {
-    id: 'q2',
-    type: 'mc',
-    category: 'Iteráció & Stratégia',
-    points: 10,
-    title: 'Az iteráció művészete',
-    description: 'Kapsz egy AI-tól egy 800 szavas elemzést a magyar gambling piacról, de az output felszínes és generic. Mit teszel?',
-    options: [
-      { id: 'a', text: 'Törlöm és újraindítom — talán most jobbat ad.', score: 0 },
-      { id: 'b', text: 'Specifikus follow-up promptokat írok: "Az 5. bekezdés túl általános. Adj konkrét adatokat a 18-29 éves korosztály lottó-részvételi arányáról, és elemezd a csökkenés okait a viselkedés-gazdaságtan szemszögéből."', score: 10 },
-      { id: 'c', text: 'Elfogadom — az AI biztosan tudja, mit csinál, hiszen rengeteg adatot látott.', score: 0 },
-      { id: 'd', text: 'Átírom kézzel az egészet, mert az AI úgysem képes mély elemzésre.', score: 2 }
-    ]
-  },
-  {
-    id: 'q3',
-    type: 'text',
-    category: 'Prompt Writing — Kreatív',
-    points: 20,
-    title: 'Tervezz egy új lottójátékot!',
-    description: 'A Szerencsejáték Zrt. egy új digitális lottójátékot szeretne, ami a <strong>18-29 éves korosztályt</strong> célozza. Jelenleg ez a szegmens drámaian alulreprezentált. <strong>Írj egy promptot</strong> (bármely AI-nak), ami egy innovatív játékkoncepciót generáltatna! Nem az ötlet számít — hanem a prompt minősége.',
-    placeholder: 'Írd ide a promptodat... A jó prompt tartalmaz szerepkört, kontextust, constraint-eket, output formátumot, és kreatív irányt.',
-    hint: '💡 Gondolj arra: milyen szerepkört adsz az AI-nak? Milyen adatokat közölsz kontextusként? Milyen formátumot vársz el? Milyen korlátokat szabsz?',
-    minLength: 150,
-    keywords: ['szerep', 'kontextus', 'formátum', 'célcsoport', 'gen z', '18-29', 'gamifi', 'digitális', 'constraint', 'korlát', 'output', 'struktúr', 'péld', 'role', 'context', 'format']
-  },
-  {
-    id: 'q4',
-    type: 'multiselect',
-    category: 'Kritikai Gondolkodás',
-    points: 15,
-    title: 'Bullshit Detector: Szűrd ki a problémás állításokat!',
-    description: 'Az alábbi AI-generált szöveget egy felelős játék kampányhoz készítette az AI. <strong>Jelöld meg az összes problémás állítást!</strong>',
-    aiText: '„A Szerencsejáték Zrt. elkötelezett a felelős játék mellett. Kutatások szerint a játékosok 97%-a egészséges módon játszik, és a lottó valójában pozitív pszichológiai hatásokkal jár: fokozza az optimizmust, erősíti a közösségi összetartozást, és a \'mi lenne ha\' gondolatkísérlet kreatív gondolkodásra ösztönöz. A Responsible Gaming programunk az iparág legjobbja, 15 éve folyamatosan csökkentjük a problémás játékosok számát."',
-    options: [
-      { id: 'a', text: '"a játékosok 97%-a egészséges módon játszik" — forrás nélküli, potenciálisan félrevezető statisztika', correct: true },
-      { id: 'b', text: '"a lottó pozitív pszichológiai hatásokkal jár" — egyoldalú framing, figyelmen kívül hagyja a negatív hatásokat', correct: true },
-      { id: 'c', text: '"fokozza az optimizmust, erősíti a közösségi összetartozást" — tudományosan nem alátámasztott általánosítás', correct: true },
-      { id: 'd', text: '"A Responsible Gaming programunk az iparág legjobbja" — szubjektív, bizonyíték nélküli superlative', correct: true },
-      { id: 'e', text: '"15 éve folyamatosan csökkentjük a problémás játékosok számát" — ellenőrizhetetlen állítás, nincs hivatkozás', correct: true },
-      { id: 'f', text: '"A Szerencsejáték Zrt. elkötelezett a felelős játék mellett" — ez egy általános vállalati elköteleződési nyilatkozat, ami önmagában nem problémás', correct: false }
-    ],
-    scoringNote: 'Minden helyes jelölés +3 pont, minden téves jelölés -2 pont (min: 0)'
-  },
-  {
-    id: 'q5',
-    type: 'text',
-    category: 'Prompt Javítás & Iteráció',
-    points: 15,
-    title: 'Javítsd meg az AI outputját!',
-    description: 'A fenti problémás szöveget (előző kérdés) egy rossz prompt hozta létre: <em>"Írj egy szöveget a felelős játékról a weboldalunkra."</em> — <strong>Írj egy javított promptot</strong>, ami etikailag korrekt, adatalapú, kiegyensúlyozott szöveget generálna!',
-    placeholder: 'Írj ide egy javított promptot, ami orvosolja az előző kérdésben azonosított problémákat...',
-    hint: '💡 Gondolj arra: hogyan kérnéd az AI-t, hogy kiegyensúlyozott legyen? Hogyan kerülöd el a cherry-pickinget? Milyen hangnemet szabsz meg? Kérsz-e forrásokat?',
-    minLength: 120,
-    keywords: ['kiegyensúlyoz', 'balanced', 'forrás', 'source', 'adat', 'etik', 'kockázat', 'risk', 'negatív', 'negative', 'nem szabad', 'elkerül', 'torzítás', 'bias', 'kritik', 'objektív', 'transzparen']
-  },
-  {
-    id: 'q6',
-    type: 'text',
-    category: 'Komplex Feladat — Stratégia',
-    points: 20,
-    title: 'Az „Elveszett Generáció" visszaszerzése',
-    description: 'A SzZrt adatai szerint a gambling penetráció 78%-ról 66%-ra esett (2015-2024), az Ötöslottó játékosoknál a 18-29 évesek aránya 50%-ról 24%-ra zuhant. <strong>Írj egy komplex, multi-step promptot</strong>, ami egy AI-tól egy teljes stratégiai javaslatot kérne arra, hogyan lehetne visszaszerezni ezt a generációt — de közben a felelős játék keretein belül maradva.',
-    placeholder: 'Írj egy komplex, strukturált promptot, ami lépésről lépésre vezeti az AI-t egy stratégiai dokumentum létrehozásához...',
-    hint: '💡 Ez a legösszetettebb feladat. A legjobb megoldás: multi-step vagy chain-of-thought prompt, ami dekomponálja a problémát. Gondolj a piaci adatokra, viselkedési mintákra, digitális csatornákra, szabályozási korlátokra, és a felelős játékra.',
-    minLength: 200,
-    keywords: ['lépés', 'step', 'először', 'first', 'másod', 'second', 'elemz', 'analy', 'adat', 'data', 'stratégi', 'célcsoport', 'target', 'digitális', 'digital', 'social', 'felelős', 'responsible', 'korlát', 'constraint', 'kpi', 'mér', 'measure', 'viselkedés', 'behavior', 'gamifi', 'innov', 'channel', 'csatorna', 'persona', 'segment']
-  },
-  {
-    id: 'q7',
-    type: 'mc',
-    category: 'AI Etika & Felelősség',
-    points: 10,
-    title: 'A prompter felelőssége',
-    description: 'Az AI egy kampányszöveget generált, ami szerint <em>"A lottó a legjobb befektetés az alacsony jövedelmű családok számára."</em> — Ez nyilvánvalóan problémás. Mi a leghelyesebb reakció?',
-    options: [
-      { id: 'a', text: 'Használom, mert az AI tudja mit csinál, és a marketing csapatnak tetszeni fog.', score: 0 },
-      { id: 'b', text: 'Módosítom a promptot, hogy explicit kizárja a félrevezető pénzügyi állításokat, és kérem az AI-t, hogy a szórakozási értéket hangsúlyozza a befektetési narratíva helyett.', score: 10 },
-      { id: 'c', text: 'Jelentem az AI fejlesztőinek, hogy hibás a modell.', score: 3 },
-      { id: 'd', text: 'Kicsit átfogalmazom, hogy kevésbé legyen direkten kimondva, de az üzenet maradjon.', score: 1 }
-    ]
-  },
-  {
-    id: 'q8',
-    type: 'text',
-    category: 'Márkaépítés & Stratégia',
-    points: 15,
-    title: 'Rebranding stratégia AI-val',
-    description: 'A Szerencsejáték Zrt. gambling penetrációja 78%-ról 66%-ra esett, a fiatal korosztály elveszett, a bizalom megrendült. A vezetőség rebranding mellett döntött. <strong>Írj egy komplex promptot</strong> egy AI-nak, ami egy teljes rebranding stratégiát dolgozna ki — a márkaidentitástól a kommunikációs hangnemen át a vizuális irányig.',
-    placeholder: 'Írd ide a promptodat... A legjobb megoldás figyelembe veszi: szerepkör, célcsoportok, jelenlegi brand problémák, elvárt output struktúra, korlátok (pl. állami cég, felelős játék), KPI-ok...',
-    hint: '💡 Gondolj arra: milyen szerepkört adsz az AI-nak (brand stratéga? kreatív igazgató?)? Hogyan definiálod a jelenlegi brand problémákat? Mit kérsz konkrétan outputként — névötletek, vizuális irány, tone of voice, pozicionálás? Milyen korlátokat (állami cég, szabályozás, felelős játék) kell figyelembe venni?',
-    minLength: 180,
-    keywords: [
-      'márka', 'brand', 'identitás', 'identity', 'pozicionálás', 'positioning',
-      'célcsoport', 'target', 'fiatal', 'gen z', 'bizalom', 'trust',
-      'vizuális', 'visual', 'logo', 'szín', 'color', 'stílus', 'style',
-      'kommunikáció', 'communication', 'tone', 'hangnem', 'üzenet', 'message',
-      'értékek', 'values', 'megkülönböztet', 'differenci', 'verseny', 'competi',
-      'digitális', 'digital', 'kampány', 'campaign', 'felelős', 'responsible',
-      'állami', 'stratégi', 'kpi', 'mér', 'slogan', 'naming', 'piaci', 'market',
-      'társadalmi', 'social', 'rebranding', 'output', 'struktúr', 'formátum'
-    ]
+  // ---- Color helpers (hex interpolation for sky/ground evolution) ----
+  function hex(c) { return [parseInt(c.slice(1,3),16), parseInt(c.slice(3,5),16), parseInt(c.slice(5,7),16)]; }
+  function mix(c1, c2, t) {
+    const a = hex(c1), b = hex(c2);
+    return `rgb(${Math.round(lerp(a[0],b[0],t))},${Math.round(lerp(a[1],b[1],t))},${Math.round(lerp(a[2],b[2],t))})`;
   }
-];
 
-// ===== NAME INPUT =====
-const nameInput = document.getElementById('candidateName');
-const startBtn = document.getElementById('startBtn');
+  // Sky gradient (top,bottom) and ground colors per stage 0..6
+  const SKY = [
+    ["#cdbf95", "#e9d8a6"], // 0 dry desert, pale
+    ["#c4c79a", "#e3dca6"], // 1 hint of green
+    ["#aec9a0", "#dbe0aa"], // 2
+    ["#8fc4e0", "#cfeccb"], // 3 bluer
+    ["#6fb6df", "#bfe9c4"], // 4
+    ["#4795cf", "#8fd6a8"], // 5 lush
+    ["#2f7fc0", "#5bbf86"], // 6 deep jungle
+  ];
+  const GROUND = [
+    ["#dcc079", "#c9a85f"], // 0 cracked sand
+    ["#cfba6e", "#b39a52"], // 1
+    ["#b5ac5c", "#8f9447"], // 2
+    ["#8aa256", "#5e7d3f"], // 3
+    ["#6b9148", "#456b33"], // 4
+    ["#4d7d3a", "#2f5a2a"], // 5
+    ["#3c6e34", "#244d22"], // 6
+  ];
+  const HILL_FAR = ["#bfae7a","#b3aa72","#9fae72","#7fa86b","#5f9560","#3f7d4f","#2f6a45"];
+  const HILL_MID = ["#c8b780","#bcb074","#a6b06f","#73a05f","#4f8f52","#357641","#245a36"];
 
-nameInput.addEventListener('input', () => {
-  startBtn.disabled = nameInput.value.trim().length < 2;
-});
+  // ============================================================
+  //  Levels content (Hungarian, exact deploy steps — Vercel Drop)
+  // ============================================================
+  const LEVELS = [
+    {
+      tag: "1. pálya",
+      title: "A varázsmappa",
+      intro: "A weboldalad fájljai együtt laknak egy mappában — ez a projekt. A Vercel pont ezt a mappát teszi majd ki az internetre.",
+      tasks: [
+        { label: "Tedd EGY mappába az AI által generált összes fájlt.", reward: "grass" },
+        { label: "Ellenőrizd, hogy a mappa tetején ott van-e az index.html (ez a kezdőoldal).", reward: "grass" },
+      ],
+      tip: "Ha az AI React/Vite/Next appot készített (van package.json), az is jó — a Vercel felismeri és buildeli. Ilyenkor a TELJES projektmappát (a package.json-nal együtt) húzd majd be.",
+    },
+    {
+      tag: "2. pálya",
+      title: "A varázskönyv",
+      intro: "A Vercel egy ingyenes házigazda (hosting): felteszi az oldaladat a netre, és kapsz egy linket, amit bárki megnyithat.",
+      tasks: [
+        { label: "Nyisd meg a vercel.com oldalt.", reward: "succulent" },
+        { label: "Regisztrálj ingyen (e-maillel vagy GitHub-fiókkal) — ez az ingyenes „Hobby” csomag.", reward: "cactus" },
+      ],
+    },
+    {
+      tag: "3. pálya",
+      title: "A teleportkapu",
+      intro: "A Vercel Drop a legegyszerűbb út: nem kell se Git, se terminál, se telepítés — csak ráhúzod a mappát a böngészőre.",
+      tasks: [
+        { label: "Jelentkezz be a Vercelre.", reward: "bush" },
+        { label: "Menj a vercel.com/drop címre.", reward: "sapling" },
+      ],
+    },
+    {
+      tag: "4. pálya",
+      title: "Életre keltés",
+      intro: "A deploy azt jelenti: a Vercel feldolgozza a fájljaidat és kiteszi a netre. Minden deploy után kapsz egy saját, élő linket.",
+      tasks: [
+        { label: "Húzd rá a projektmappádat a vercel.com/drop oldalra.", reward: "tree" },
+        { label: "Adj nevet a projektnek, és válaszd ki a saját fiókodat (csapatodat).", reward: "flower" },
+        { label: "Kattints a Deploy gombra, és várj pár másodpercet.", reward: "butterfly" },
+      ],
+    },
+    {
+      tag: "5. pálya",
+      title: "A megosztás",
+      intro: "A kapott link nyilvános: aki megkapja, pontosan ugyanazt látja, amit te. Fent vagy az interneten!",
+      tasks: [
+        { label: "Másold ki a kapott linket (valami…vercel.app).", reward: "frog" },
+        { label: "Küldd el bárkinek — ő is meg tudja nyitni a böngészőjében.", reward: "bird" },
+      ],
+      bonus: "Frissítés? Ha módosítasz a fájlokon, húzd rá újra a mappát a vercel.com/drop-ra. Profi szint: kösd össze a projektet GitHub-bal a folyamatos, automatikus frissítésekhez.",
+    },
+  ];
 
-nameInput.addEventListener('keydown', (e) => {
-  sfxType();
-  if (e.key === 'Enter' && !startBtn.disabled) startTest();
-});
+  // ============================================================
+  //  State
+  // ============================================================
+  const SAVE_KEY = "deploy-dzsungel-v1";
+  let state = {
+    level: 0,            // 0..LEVELS.length (== final)
+    stage: 0,            // growth stage 0..6
+    checked: LEVELS.map(l => l.tasks.map(() => false)),
+  };
 
-// ===== START =====
-function startTest() {
-  sfxNav();
-  document.getElementById('welcomeScreen').classList.remove('active');
-  document.getElementById('questionScreen').classList.add('active');
-  document.getElementById('timerBar').style.display = 'flex';
-  document.getElementById('progressTrack').style.display = 'block';
-  testStarted = true;
-  startTimer();
-  renderQuestion();
-}
+  function save() {
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+  function load() {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return;
+      const s = JSON.parse(raw);
+      if (s && typeof s.level === "number" && Array.isArray(s.checked)) {
+        state.level = clamp(s.level, 0, LEVELS.length);
+        state.stage = clamp(s.stage | 0, 0, 6);
+        for (let i = 0; i < LEVELS.length; i++) {
+          if (Array.isArray(s.checked[i])) {
+            for (let j = 0; j < LEVELS[i].tasks.length; j++) state.checked[i][j] = !!s.checked[i][j];
+          }
+        }
+      }
+    } catch (e) {}
+  }
 
-// ===== TIMER =====
-function startTimer() {
-  updateTimerDisplay();
-  timerInterval = setInterval(() => {
-    totalSeconds--;
-    updateTimerDisplay();
-    if (totalSeconds <= 0) {
-      clearInterval(timerInterval);
-      submitTest();
+  // ============================================================
+  //  Canvas + scene
+  // ============================================================
+  const canvas = document.getElementById("scene");
+  const ctx = canvas.getContext("2d", { alpha: false });
+  let W = 0, H = 0, DPR = 1, groundY = 0;
+
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    canvas.style.width = W + "px";
+    canvas.style.height = H + "px";
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    groundY = H * 0.74;
+    layoutEntities();
+    if (REDUCED) drawFrame(performance.now());
+  }
+
+  // Entity stores — cumulative, never reset between levels
+  let plants = [];   // {type, x, ry(0..1 relative across width), scale, phase, seed, color}
+  let animals = [];  // movers / static creatures
+  let particles = []; // transient bursts / cursor trail / sprouts
+  let beams = 0;      // light-beam intensity 0..1
+  let pollen = 0;     // ambient pollen/firefly count target
+
+  // positions are stored relative (rx in 0..1) so resize keeps layout
+  function layoutEntities() {
+    for (const p of plants) p.x = p.rx * W;
+    for (const a of animals) if (a.rx != null) a.x = a.rx * W;
+  }
+
+  // ---- mouse parallax ----
+  let mx = 0, my = 0, tmx = 0, tmy = 0;
+  if (!REDUCED) {
+    window.addEventListener("pointermove", e => {
+      tmx = (e.clientX / W - 0.5) * 2;
+      tmy = (e.clientY / H - 0.5) * 2;
+      spawnTrail(e.clientX, e.clientY);
+    }, { passive: true });
+  }
+
+  // ============================================================
+  //  Procedural draw helpers
+  // ============================================================
+  function leafBlob(x, y, rx, ry, rot, color) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rot);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, rx, ry, 0, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawGrass(p, t) {
+    const sway = REDUCED ? 0 : Math.sin(t * 0.0013 + p.phase) * 0.12;
+    ctx.save();
+    ctx.translate(p.x, groundY + p.yoff);
+    ctx.rotate(sway);
+    ctx.scale(p.scale, p.scale);
+    const blades = 5;
+    for (let i = 0; i < blades; i++) {
+      const off = (i - blades / 2) * 4;
+      const bend = (i - blades / 2) * 3 + Math.sin(t * 0.002 + p.phase + i) * 2;
+      ctx.beginPath();
+      ctx.moveTo(off - 2, 0);
+      ctx.quadraticCurveTo(off + bend, -18, off + bend + 1, -34);
+      ctx.quadraticCurveTo(off + bend, -18, off + 2, 0);
+      ctx.fillStyle = p.color;
+      ctx.fill();
     }
-    // warning beep at 5 min
-    if (totalSeconds === 300) { playTone(880, 'sine', 0.3, 0.15); }
-    // danger beep every 30s in last 2 min
-    if (totalSeconds <= 120 && totalSeconds % 30 === 0 && totalSeconds > 0) { playTone(660, 'square', 0.1, 0.1); }
-  }, 1000);
-}
-
-function updateTimerDisplay() {
-  const m = Math.floor(totalSeconds / 60);
-  const s = totalSeconds % 60;
-  const display = document.getElementById('timerDisplay');
-  display.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  display.className = 'timer-display' + (totalSeconds <= 120 ? ' danger' : totalSeconds <= 300 ? ' warning' : '');
-}
-
-// ===== RENDER QUESTION =====
-function renderQuestion() {
-  const q = questions[currentQ];
-  const wrap = document.getElementById('questionContent');
-  const total = questions.length;
-
-  document.getElementById('questionCounter').textContent = `${currentQ + 1} / ${total}`;
-  document.getElementById('progressFill').style.width = `${((currentQ) / total) * 100}%`;
-
-  let html = `
-    <div class="fade-in">
-      <div class="q-header">
-        <span class="q-number">Kérdés ${currentQ + 1}/${total}</span>
-        <span class="q-points">${q.points} pont</span>
-      </div>
-      <div class="q-category">${q.category}</div>
-      <h2 class="q-title">${q.title}</h2>
-      <div class="q-description">${q.description}</div>
-  `;
-
-  if (q.aiText) {
-    html += `<div class="ai-text-block"><p>${q.aiText}</p></div>`;
+    ctx.restore();
   }
 
-  if (q.hint) {
-    html += `<div class="hint-box"><span class="hint-icon">💡</span> ${q.hint.replace('💡 ','')}</div>`;
-  }
-
-  if (q.type === 'mc') {
-    html += `<div class="mc-options">`;
-    q.options.forEach(opt => {
-      const sel = answers[q.id] === opt.id ? 'selected' : '';
-      html += `
-        <div class="mc-option ${sel}" onclick="selectMC('${q.id}','${opt.id}')">
-          <div class="mc-dot"></div>
-          <div class="mc-text">${opt.text}</div>
-        </div>`;
-    });
-    html += `</div>`;
-  }
-
-  if (q.type === 'multiselect') {
-    if (q.scoringNote) {
-      html += `<div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;font-family:'JetBrains Mono',monospace;">${q.scoringNote}</div>`;
+  function drawSucculent(p, t) {
+    ctx.save();
+    ctx.translate(p.x, groundY + p.yoff);
+    ctx.scale(p.scale, p.scale);
+    const n = 7;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * TAU;
+      leafBlob(Math.cos(a) * 8, -6 + Math.sin(a) * 4, 6, 12, a + Math.PI / 2, p.color);
     }
-    html += `<div class="checkbox-options">`;
-    const selected = answers[q.id] || [];
-    q.options.forEach(opt => {
-      const sel = selected.includes(opt.id) ? 'selected' : '';
-      html += `
-        <div class="checkbox-option ${sel}" onclick="toggleCheck('${q.id}','${opt.id}')">
-          <div class="cb-box"></div>
-          <div class="mc-text">${opt.text}</div>
-        </div>`;
-    });
-    html += `</div>`;
+    leafBlob(0, -8, 6, 10, 0, "#95d5b2");
+    ctx.restore();
   }
 
-  if (q.type === 'text') {
-    const val = answers[q.id] || '';
-    html += `
-      <div class="text-area-wrap">
-        <div class="text-area-label">
-          <span>✏️ Válaszod</span>
-          <span class="char-count" id="charCount-${q.id}">${val.length} karakter</span>
-        </div>
-        <textarea class="text-area" id="textarea-${q.id}" rows="8" placeholder="${q.placeholder || 'Írd ide a válaszod...'}" oninput="onTextInput('${q.id}')">${val}</textarea>
-      </div>`;
+  function drawCactus(p, t) {
+    const sway = REDUCED ? 0 : Math.sin(t * 0.001 + p.phase) * 0.03;
+    ctx.save();
+    ctx.translate(p.x, groundY + p.yoff);
+    ctx.rotate(sway);
+    ctx.scale(p.scale, p.scale);
+    ctx.fillStyle = p.color;
+    roundRect(-7, -46, 14, 50, 7); ctx.fill();
+    roundRect(-22, -34, 12, 26, 6); ctx.fill();
+    roundRect(-22, -34, 12, 10, 6); ctx.fill();
+    ctx.fillRect(-22, -30, 12, 18);
+    roundRect(10, -40, 12, 30, 6); ctx.fill();
+    ctx.fillRect(10, -22, 12, 12);
+    ctx.restore();
   }
 
-  // Nav
-  html += `<div class="nav-row">`;
-  if (currentQ > 0) {
-    html += `<button class="nav-btn prev" onclick="prevQ()">← Előző</button>`;
-  } else {
-    html += `<div></div>`;
+  function drawBush(p, t) {
+    const sway = REDUCED ? 0 : Math.sin(t * 0.0012 + p.phase) * 0.04;
+    ctx.save();
+    ctx.translate(p.x, groundY + p.yoff);
+    ctx.rotate(sway);
+    ctx.scale(p.scale, p.scale);
+    const c = p.color, cd = shade(c, -18);
+    leafBlob(-14, -10, 16, 14, 0, cd);
+    leafBlob(14, -10, 16, 14, 0, cd);
+    leafBlob(0, -20, 20, 18, 0, c);
+    leafBlob(-6, -14, 12, 11, 0, shade(c, 14));
+    ctx.restore();
   }
 
-  html += `<div class="step-dots">`;
-  questions.forEach((_, i) => {
-    let cls = 'step-dot';
-    if (i === currentQ) cls += ' current';
-    else if (answers[questions[i].id] !== undefined) cls += ' done';
-    html += `<div class="${cls}" onclick="goToQ(${i})"></div>`;
-  });
-  html += `</div>`;
-
-  if (currentQ < total - 1) {
-    html += `<button class="nav-btn next" onclick="nextQ()">Következő →</button>`;
-  } else {
-    html += `<button class="nav-btn submit" onclick="submitTest()">Leadás ✓</button>`;
+  function drawSapling(p, t) {
+    const sway = REDUCED ? 0 : Math.sin(t * 0.0011 + p.phase) * 0.05;
+    ctx.save();
+    ctx.translate(p.x, groundY + p.yoff);
+    ctx.rotate(sway);
+    ctx.scale(p.scale, p.scale);
+    ctx.strokeStyle = "#7a5230"; ctx.lineWidth = 5; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(2, -26, 0, -44); ctx.stroke();
+    leafBlob(0, -48, 18, 16, 0, p.color);
+    leafBlob(-12, -40, 11, 10, 0, shade(p.color, -14));
+    leafBlob(12, -40, 11, 10, 0, shade(p.color, -14));
+    ctx.restore();
   }
 
-  html += `</div></div>`;
-  wrap.innerHTML = html;
-
-  // Focus textarea if text type
-  if (q.type === 'text') {
-    setTimeout(() => {
-      const ta = document.getElementById(`textarea-${q.id}`);
-      if (ta) ta.focus();
-    }, 100);
+  function drawTree(p, t) {
+    const sway = REDUCED ? 0 : Math.sin(t * 0.0008 + p.phase) * 0.025;
+    ctx.save();
+    ctx.translate(p.x, groundY + p.yoff);
+    ctx.scale(p.scale, p.scale);
+    // trunk
+    ctx.fillStyle = "#6b4423";
+    ctx.beginPath();
+    ctx.moveTo(-8, 0); ctx.quadraticCurveTo(-6, -50, -7, -92);
+    ctx.lineTo(7, -92); ctx.quadraticCurveTo(6, -50, 8, 0); ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#5a3a1e";
+    ctx.fillRect(-3, -80, 2, 70);
+    // canopy (sway)
+    ctx.save();
+    ctx.translate(0, -92);
+    ctx.rotate(sway);
+    const c = p.color;
+    leafBlob(-30, 4, 34, 28, 0, shade(c, -16));
+    leafBlob(30, 4, 34, 28, 0, shade(c, -16));
+    leafBlob(0, -16, 40, 34, 0, c);
+    leafBlob(-16, -6, 24, 22, 0, shade(c, 12));
+    leafBlob(18, -10, 22, 20, 0, shade(c, 18));
+    ctx.restore();
+    ctx.restore();
   }
 
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// ===== INTERACTIONS =====
-function selectMC(qId, optId) {
-  sfxSelect();
-  answers[qId] = optId;
-  renderQuestion();
-}
-
-function toggleCheck(qId, optId) {
-  sfxSelect();
-  if (!answers[qId]) answers[qId] = [];
-  const idx = answers[qId].indexOf(optId);
-  if (idx > -1) answers[qId].splice(idx, 1);
-  else answers[qId].push(optId);
-  renderQuestion();
-}
-
-function onTextInput(qId) {
-  const ta = document.getElementById(`textarea-${qId}`);
-  answers[qId] = ta.value;
-  const counter = document.getElementById(`charCount-${qId}`);
-  if (counter) counter.textContent = `${ta.value.length} karakter`;
-}
-
-function nextQ() {
-  sfxNav();
-  if (currentQ < questions.length - 1) { currentQ++; renderQuestion(); }
-}
-
-function prevQ() {
-  sfxNav();
-  if (currentQ > 0) { currentQ--; renderQuestion(); }
-}
-
-function goToQ(i) {
-  sfxClick();
-  currentQ = i;
-  renderQuestion();
-}
-
-// ===== SCORING =====
-function calculateScore() {
-  let total = 0;
-  let breakdown = [];
-
-  questions.forEach(q => {
-    let pts = 0;
-    const ans = answers[q.id];
-
-    if (q.type === 'mc') {
-      const chosen = q.options.find(o => o.id === ans);
-      pts = chosen ? chosen.score : 0;
+  function drawVine(p, t) {
+    ctx.save();
+    ctx.translate(p.x, groundY + p.yoff - 150 * p.scale);
+    ctx.scale(p.scale, p.scale);
+    ctx.strokeStyle = "#40916c"; ctx.lineWidth = 4; ctx.lineCap = "round";
+    const len = p.len || 120;
+    const sway = REDUCED ? 0 : Math.sin(t * 0.0015 + p.phase) * 8;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    for (let y = 0; y <= len; y += 12) {
+      const xx = Math.sin(y * 0.06 + p.phase) * 6 + (y / len) * sway;
+      ctx.lineTo(xx, y);
     }
-
-    if (q.type === 'multiselect') {
-      const selected = ans || [];
-      selected.forEach(id => {
-        const opt = q.options.find(o => o.id === id);
-        if (opt && opt.correct) pts += 3;
-        else if (opt && !opt.correct) pts -= 2;
-      });
-      pts = Math.max(0, Math.min(q.points, pts));
+    ctx.stroke();
+    for (let y = 18; y <= len; y += 26) {
+      const xx = Math.sin(y * 0.06 + p.phase) * 6 + (y / len) * sway;
+      leafBlob(xx + 7, y, 8, 5, 0.5, "#52b788");
+      leafBlob(xx - 7, y + 8, 8, 5, -0.5, "#52b788");
     }
+    ctx.restore();
+  }
 
-    if (q.type === 'text') {
-      const text = (ans || '').toLowerCase();
-      const len = text.length;
-
-      // Length score (0-40% of points)
-      let lengthScore = 0;
-      if (len >= (q.minLength || 100)) lengthScore = q.points * 0.4;
-      else if (len > 50) lengthScore = q.points * 0.2;
-      else if (len > 20) lengthScore = q.points * 0.1;
-
-      // Keyword score (0-60% of points)
-      let kwHits = 0;
-      const kws = q.keywords || [];
-      kws.forEach(kw => { if (text.includes(kw.toLowerCase())) kwHits++; });
-      const kwRatio = kws.length > 0 ? Math.min(1, kwHits / Math.ceil(kws.length * 0.35)) : 0;
-      let kwScore = q.points * 0.6 * kwRatio;
-
-      pts = Math.round(lengthScore + kwScore);
-      pts = Math.min(q.points, pts);
+  function drawFlower(p, t) {
+    const sway = REDUCED ? 0 : Math.sin(t * 0.0016 + p.phase) * 0.1;
+    ctx.save();
+    ctx.translate(p.x, groundY + p.yoff);
+    ctx.rotate(sway);
+    ctx.scale(p.scale, p.scale);
+    ctx.strokeStyle = "#52b788"; ctx.lineWidth = 3; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(2, -14, 0, -26); ctx.stroke();
+    const petals = 6;
+    for (let i = 0; i < petals; i++) {
+      const a = (i / petals) * TAU;
+      leafBlob(Math.cos(a) * 8, -26 + Math.sin(a) * 8, 6, 9, a + Math.PI / 2, p.color);
     }
+    ctx.fillStyle = "#ffcb47";
+    ctx.beginPath(); ctx.arc(0, -26, 5, 0, TAU); ctx.fill();
+    ctx.restore();
+  }
 
-    total += pts;
-    breakdown.push({ title: q.title, category: q.category, points: pts, max: q.points });
-  });
+  // ---- Animals (flat vector silhouettes) ----
+  function drawButterfly(a, t) {
+    const flap = REDUCED ? 0.7 : (0.4 + Math.abs(Math.sin(t * 0.012 + a.phase)) * 0.8);
+    ctx.save();
+    ctx.translate(a.x, a.y);
+    ctx.scale(a.scale, a.scale);
+    ctx.rotate(Math.sin(t * 0.003 + a.phase) * 0.2 - (a.vx < 0 ? 0.15 : -0.15));
+    const c = a.color;
+    ctx.save(); ctx.scale(flap, 1);
+    leafBlob(-7, -5, 7, 9, -0.3, c);
+    leafBlob(-6, 6, 6, 7, 0.3, shade(c, -12));
+    ctx.restore();
+    ctx.save(); ctx.scale(flap, 1);
+    leafBlob(7, -5, 7, 9, 0.3, c);
+    leafBlob(6, 6, 6, 7, -0.3, shade(c, -12));
+    ctx.restore();
+    ctx.fillStyle = "#3a2a1a";
+    roundRect(-1.5, -8, 3, 16, 1.5); ctx.fill();
+    ctx.restore();
+  }
 
-  return { total, breakdown };
-}
+  function drawDragonfly(a, t) {
+    const flap = REDUCED ? 1 : (0.5 + Math.abs(Math.sin(t * 0.03 + a.phase)) * 0.7);
+    ctx.save();
+    ctx.translate(a.x, a.y);
+    ctx.scale(a.scale * (a.vx < 0 ? -1 : 1), a.scale);
+    ctx.fillStyle = "rgba(140,220,255,.6)";
+    ctx.save(); ctx.scale(1, flap);
+    leafBlob(-2, -4, 12, 4, -0.1, "rgba(150,225,255,.55)");
+    leafBlob(-2, 4, 12, 4, 0.1, "rgba(150,225,255,.55)");
+    ctx.restore();
+    ctx.fillStyle = a.color;
+    roundRect(-14, -1.5, 30, 3, 1.5); ctx.fill();
+    ctx.beginPath(); ctx.arc(15, 0, 3.2, 0, TAU); ctx.fill();
+    ctx.restore();
+  }
 
-// ===== SUBMIT =====
-function submitTest() {
-  sfxSubmit();
-  clearInterval(timerInterval);
-
-  document.getElementById('questionScreen').classList.remove('active');
-  document.getElementById('resultScreen').classList.add('active');
-  document.getElementById('progressFill').style.width = '100%';
-
-  const { total, breakdown } = calculateScore();
-  const passed = total >= 69;
-
-  setTimeout(() => {
-    if (passed) {
-      sfxSuccess();
-      launchConfetti();
+  function drawFrog(a, t) {
+    const blink = a.blink > 0;
+    ctx.save();
+    ctx.translate(a.x, a.y);
+    ctx.scale(a.scale, a.scale);
+    const c = "#52b788";
+    leafBlob(0, 0, 16, 12, 0, c);
+    ctx.fillStyle = shade(c, -14);
+    leafBlob(-12, 6, 8, 5, -0.4, shade(c, -14));
+    leafBlob(12, 6, 8, 5, 0.4, shade(c, -14));
+    // eyes
+    leafBlob(-7, -11, 6, 6, 0, c);
+    leafBlob(7, -11, 6, 6, 0, c);
+    if (!blink) {
+      ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(-7, -12, 3.2, 0, TAU); ctx.arc(7, -12, 3.2, 0, TAU); ctx.fill();
+      ctx.fillStyle = "#10261c"; ctx.beginPath(); ctx.arc(-7, -12, 1.6, 0, TAU); ctx.arc(7, -12, 1.6, 0, TAU); ctx.fill();
     } else {
-      sfxNeutral();
+      ctx.strokeStyle = "#10261c"; ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(-10, -12); ctx.lineTo(-4, -12); ctx.moveTo(4, -12); ctx.lineTo(10, -12); ctx.stroke();
     }
-  }, 800);
-
-  const ringCircumference = 2 * Math.PI * 95;
-  const dashOffset = ringCircumference - (total / 115) * ringCircumference;
-  const strokeColor = passed ? 'var(--neon-green)' : 'var(--neon-blue)';
-  const glowFilter = passed ? 'drop-shadow(0 0 12px rgba(0,255,136,0.5))' : 'drop-shadow(0 0 12px rgba(0,212,255,0.3))';
-
-  let html = `
-    <div class="fade-in">
-      <div class="result-score-wrap">
-        <svg class="result-ring" viewBox="0 0 200 200" style="filter:${glowFilter}">
-          <circle class="result-ring-bg" cx="100" cy="100" r="95"/>
-          <circle class="result-ring-fill" cx="100" cy="100" r="95"
-            stroke="${strokeColor}"
-            stroke-dasharray="${ringCircumference}"
-            stroke-dashoffset="${ringCircumference}"
-            id="scoreRing"/>
-        </svg>
-        <div class="result-score-text">
-          <div class="result-score-number" style="color:${strokeColor};text-shadow:${passed ? 'var(--glow-green)' : 'var(--glow-blue)'}" id="scoreCounter">0</div>
-          <div class="result-score-label">/ 115 pont</div>
-        </div>
-      </div>
-  `;
-
-  if (passed) {
-    html += `
-      <div class="result-message" style="color:var(--neon-green);text-shadow:var(--glow-green);">
-        ✦ Megfelelt! ✦
-      </div>
-      <div class="result-sub">
-        Gratulálunk, <strong>${nameInput.value}</strong>! Az AI prompting készségeid erős alapot mutatnak. 
-        Az eredményeidet továbbítjuk az Innovációs Osztály csapatának.
-      </div>
-    `;
-  } else {
-    html += `
-      <div class="result-message" style="color:var(--neon-blue);text-shadow:var(--glow-blue);">
-        Elküldve további értékelésre.
-      </div>
-      <div class="result-sub">
-        Köszönjük, <strong>${nameInput.value}</strong>! Az eredményeidet továbbítottuk a csapatnak, 
-        akik részletesen átnézik a válaszaidat.
-      </div>
-    `;
+    ctx.strokeStyle = "#2d6a4f"; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.arc(0, 2, 7, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+    ctx.restore();
   }
 
-  html += `<div class="result-breakdown">`;
-  breakdown.forEach(b => {
-    const pct = b.max > 0 ? Math.round((b.points / b.max) * 100) : 0;
-    let color = pct >= 75 ? 'var(--neon-green)' : pct >= 40 ? 'var(--neon-yellow)' : 'var(--neon-magenta)';
-    html += `
-      <div class="breakdown-card">
-        <div class="breakdown-label">${b.category}</div>
-        <div class="breakdown-score" style="color:${color}">${b.points}<span class="breakdown-max">/${b.max}</span></div>
-      </div>`;
-  });
-  html += `</div></div>`;
-
-  document.getElementById('resultContent').innerHTML = html;
-
-  // Animate ring + counter
-  setTimeout(() => {
-    document.getElementById('scoreRing').style.strokeDashoffset = dashOffset;
-    animateCounter('scoreCounter', 0, total, 1500);
-  }, 300);
-}
-
-function animateCounter(id, start, end, duration) {
-  const el = document.getElementById(id);
-  const startTime = performance.now();
-  function tick(now) {
-    const elapsed = now - startTime;
-    const progress = Math.min(elapsed / duration, 1);
-    const eased = 1 - Math.pow(1 - progress, 3);
-    el.textContent = Math.round(start + (end - start) * eased);
-    if (progress < 1) requestAnimationFrame(tick);
+  function drawBird(a, t) {
+    const hop = REDUCED ? 0 : Math.max(0, Math.sin(t * 0.004 + a.phase)) * 3;
+    ctx.save();
+    ctx.translate(a.x, a.y - hop);
+    ctx.scale(a.scale * (a.flip ? -1 : 1), a.scale);
+    const c = a.color;
+    leafBlob(0, 0, 12, 9, 0, c);
+    leafBlob(9, -7, 7, 6, 0, c);
+    ctx.fillStyle = "#ffcb47";
+    ctx.beginPath(); ctx.moveTo(15, -7); ctx.lineTo(22, -5); ctx.lineTo(15, -3); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(11, -8, 2, 0, TAU); ctx.fill();
+    ctx.fillStyle = "#10261c"; ctx.beginPath(); ctx.arc(11.5, -8, 1, 0, TAU); ctx.fill();
+    ctx.fillStyle = shade(c, -16);
+    leafBlob(-6, 0, 9, 6, 0.3, shade(c, -16));
+    ctx.fillStyle = pick([a.tail || "#ff006e"]);
+    ctx.beginPath(); ctx.moveTo(-10, -2); ctx.lineTo(-20, -6); ctx.lineTo(-12, 3); ctx.closePath(); ctx.fillStyle = a.tail; ctx.fill();
+    ctx.restore();
   }
-  requestAnimationFrame(tick);
-}
 
-// ===== CONFETTI =====
-function launchConfetti() {
-  const canvas = document.getElementById('confetti-canvas');
-  const ctx = canvas.getContext('2d');
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  function drawMonkey(a, t) {
+    const swing = REDUCED ? 0 : Math.sin(t * 0.0022 + a.phase) * 0.28;
+    ctx.save();
+    ctx.translate(a.x, a.y);
+    ctx.rotate(swing);
+    ctx.scale(a.scale, a.scale);
+    ctx.strokeStyle = "#6b4423"; ctx.lineWidth = 3; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-2, -22); ctx.stroke(); // arm to vine
+    const c = "#8a5a2b";
+    leafBlob(0, 14, 12, 16, 0, c);          // body
+    leafBlob(0, -2, 11, 10, 0, c);          // head
+    leafBlob(-9, -4, 4.5, 4.5, 0, c); leafBlob(9, -4, 4.5, 4.5, 0, c); // ears
+    leafBlob(0, 1, 7, 6, 0, "#d9b38c");     // face
+    ctx.fillStyle = "#10261c";
+    ctx.beginPath(); ctx.arc(-3, -1, 1.4, 0, TAU); ctx.arc(3, -1, 1.4, 0, TAU); ctx.fill();
+    ctx.strokeStyle = c; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(8, 18); ctx.quadraticCurveTo(24, 16, 20, 30); ctx.stroke(); // tail
+    ctx.restore();
+  }
 
-  const particles = [];
-  const colors = ['#00ff88', '#ff006e', '#00d4ff', '#a855f7', '#facc15', '#fff'];
+  function drawJaguar(a, t) {
+    ctx.save();
+    ctx.translate(a.x, a.y);
+    ctx.scale(a.scale * (a.flip ? -1 : 1), a.scale);
+    const c = "#e9a23b";
+    leafBlob(0, 0, 22, 16, 0, c);     // head peeking
+    leafBlob(-13, -13, 6, 6, 0, c); leafBlob(13, -13, 6, 6, 0, c); // ears
+    ctx.fillStyle = "#10261c";
+    // spots
+    for (const s of a.spots) { ctx.beginPath(); ctx.arc(s[0], s[1], s[2], 0, TAU); ctx.fill(); }
+    // eyes glow
+    const glow = REDUCED ? 1 : (0.6 + Math.abs(Math.sin(t * 0.004 + a.phase)) * 0.4);
+    ctx.fillStyle = `rgba(255,210,90,${glow})`;
+    ctx.beginPath(); ctx.ellipse(-8, -2, 4, 5, 0, 0, TAU); ctx.ellipse(8, -2, 4, 5, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = "#10261c";
+    ctx.beginPath(); ctx.ellipse(-8, -2, 1.4, 4, 0, 0, TAU); ctx.ellipse(8, -2, 1.4, 4, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.beginPath(); ctx.moveTo(-3, 8); ctx.lineTo(0, 12); ctx.lineTo(3, 8); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
 
-  for (let i = 0; i < 150; i++) {
-    particles.push({
-      x: canvas.width / 2 + (Math.random() - 0.5) * 200,
-      y: canvas.height / 2,
-      vx: (Math.random() - 0.5) * 16,
-      vy: Math.random() * -18 - 4,
-      w: Math.random() * 8 + 4,
-      h: Math.random() * 6 + 2,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      rotation: Math.random() * 360,
-      rotSpeed: (Math.random() - 0.5) * 12,
-      gravity: 0.25 + Math.random() * 0.15,
-      life: 1
+  function drawBeetle(a, t) {
+    ctx.save();
+    ctx.translate(a.x, a.y);
+    ctx.scale(a.scale * (a.vx < 0 ? -1 : 1), a.scale);
+    leafBlob(0, 0, 7, 9, 0, a.color);
+    ctx.strokeStyle = "#10261c"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, -8); ctx.lineTo(0, 8); ctx.stroke();
+    leafBlob(0, -9, 4, 4, 0, "#10261c");
+    ctx.restore();
+  }
+
+  // ============================================================
+  //  Entity factories
+  // ============================================================
+  function addPlant(type, rx, scale, color) {
+    if (plants.length > 110) return;
+    plants.push({
+      type, rx, x: rx * W,
+      scale: scale * rand(0.85, 1.15),
+      phase: rand(0, TAU),
+      yoff: rand(-2, 8),
+      color: color || randGreen(),
+      len: type === "vine" ? rand(90, 170) : 0,
     });
   }
 
-  let frame = 0;
-  function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    let alive = false;
-    particles.forEach(p => {
-      p.x += p.vx;
-      p.vy += p.gravity;
-      p.y += p.vy;
-      p.rotation += p.rotSpeed;
-      p.vx *= 0.99;
-      p.life -= 0.005;
+  function randGreen() {
+    return pick(["#2d6a4f", "#40916c", "#52b788", "#358a5e", "#3a7d52", "#469a66"]);
+  }
 
-      if (p.life > 0 && p.y < canvas.height + 50) {
-        alive = true;
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rotation * Math.PI / 180);
-        ctx.globalAlpha = Math.max(0, p.life);
-        ctx.fillStyle = p.color;
-        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+  function addAnimal(type, opts = {}) {
+    const cap = { butterfly: 8, dragonfly: 6, firefly: 26, frog: 6, bird: 7, monkey: 4, jaguar: 1, beetle: 8 };
+    const count = animals.filter(a => a.type === type).length;
+    if (cap[type] != null && count >= cap[type]) return;
+    const a = Object.assign({ type, phase: rand(0, TAU), blink: 0 }, opts);
+    animals.push(a);
+    return a;
+  }
+
+  function spawnButterfly(x, y) {
+    addAnimal("butterfly", {
+      x: x != null ? x : rand(0, W), y: y != null ? y : rand(H * 0.2, groundY - 40),
+      vx: rand(-0.4, 0.4) || 0.3, vy: rand(-0.2, 0.2),
+      scale: rand(0.8, 1.3), color: pick(["#ff6b9d", "#ffcb47", "#7aa8ff", "#c77dff", "#ff8c42"]),
+      baseY: y != null ? y : rand(H * 0.25, groundY - 60),
+    });
+  }
+  function spawnDragonfly() {
+    addAnimal("dragonfly", {
+      x: rand(0, W), y: rand(H * 0.3, groundY - 30),
+      vx: rand(0.6, 1.4) * (Math.random() < .5 ? -1 : 1), vy: 0,
+      scale: rand(0.7, 1), color: pick(["#2d6a4f", "#0096c7", "#7209b7"]),
+      baseY: rand(H * 0.3, groundY - 30),
+    });
+  }
+  function spawnFirefly() {
+    addAnimal("firefly", {
+      x: rand(0, W), y: rand(H * 0.3, groundY - 10),
+      vx: rand(-0.25, 0.25), vy: rand(-0.25, 0.25),
+      scale: 1, phase: rand(0, TAU),
+    });
+  }
+  function spawnFrog(x) {
+    addAnimal("frog", { rx: x != null ? x / W : rand(0.1, 0.9), x: x != null ? x : rand(W*0.1,W*0.9), y: groundY + rand(-4, 6), scale: rand(0.75, 1), blinkTimer: rand(60, 200) });
+  }
+  function spawnBird(x) {
+    addAnimal("bird", { rx: x != null ? x / W : rand(0.1, 0.9), x: x != null ? x : rand(W*0.1,W*0.9), y: groundY - rand(40, 130), scale: rand(0.7, 1), flip: Math.random()<.5,
+      color: pick(["#e63946","#f4a261","#457b9d","#ffb703"]), tail: pick(["#ff006e","#fb8500","#3a86ff"]) });
+  }
+  function spawnMonkey() {
+    addAnimal("monkey", { rx: rand(0.12, 0.88), x: rand(W*0.12,W*0.88), y: rand(H*0.18, H*0.34), scale: rand(0.7, 1) });
+  }
+  function spawnJaguar() {
+    const rx = Math.random()<.5?0.07:0.93;
+    addAnimal("jaguar", { rx, x: rx * W, y: groundY - rand(20, 50), scale: rand(0.85,1.05), flip: Math.random()<.5,
+      spots: Array.from({length:6}, () => [rand(-14,14), rand(-8,10), rand(1.5,3)]) });
+  }
+  function spawnBeetle() {
+    addAnimal("beetle", { x: rand(0,W), y: groundY + rand(-2, 10), vx: rand(0.2,0.5)*(Math.random()<.5?-1:1), scale: rand(0.7,1), color: pick(["#1b4332","#6a040f","#3a0ca3"]) });
+  }
+
+  // ============================================================
+  //  Stage population (cumulative growth — richer every stage)
+  // ============================================================
+  function populateStage(stage) {
+    // Build the whole scene up to `stage` from scratch (used on load / reset)
+    plants = []; animals = []; particles = [];
+    for (let s = 0; s <= stage; s++) addStageBatch(s, true);
+    beams = stage >= 5 ? 1 : stage >= 4 ? 0.45 : stage >= 3 ? 0.18 : 0;
+    pollen = stage >= 5 ? 24 : stage >= 4 ? 14 : stage >= 2 ? 6 : 0;
+    refreshPollen();
+  }
+
+  function addStageBatch(stage, silent) {
+    const both = (fn, n) => { for (let i = 0; i < n; i++) fn(rand(0.05, 0.95)); };
+    switch (stage) {
+      case 0:
+        both(rx => addPlant("grass", rx, 0.8, "#9aa15e"), 3);
+        break;
+      case 1:
+        both(rx => addPlant("grass", rx, 0.95, "#7fae5c"), 4);
+        both(rx => addPlant("succulent", rx, 0.9, "#74c69d"), 2);
+        addPlant("cactus", rand(0.1, 0.9), 1.0);
+        break;
+      case 2:
+        both(rx => addPlant("grass", rx, 1.0), 3);
+        both(rx => addPlant("bush", rx, 0.85), 3);
+        addPlant("sapling", rand(0.2, 0.8), 1.0);
+        break;
+      case 3:
+        addPlant("tree", 0.18, 0.85); addPlant("tree", 0.82, 0.9); addPlant("tree", 0.5, 1.0);
+        both(rx => addPlant("bush", rx, 1.0), 3);
+        for (let i=0;i<3;i++) spawnButterfly();
+        for (let i=0;i<2;i++) spawnDragonfly();
+        break;
+      case 4:
+        addPlant("tree", 0.32, 1.05); addPlant("tree", 0.68, 1.1);
+        for (let i=0;i<3;i++) addPlant("vine", rand(0.1,0.9), rand(0.9,1.3));
+        for (let i=0;i<4;i++) addPlant("flower", rand(0.05,0.95), 1);
+        for (let i=0;i<3;i++) spawnFrog();
+        for (let i=0;i<3;i++) spawnBeetle();
+        for (let i=0;i<3;i++) spawnBird();
+        for (let i=0;i<2;i++) spawnButterfly();
+        break;
+      case 5:
+        addPlant("tree", 0.08, 1.2); addPlant("tree", 0.92, 1.2); addPlant("tree", 0.45, 1.25);
+        for (let i=0;i<4;i++) addPlant("vine", rand(0.05,0.95), rand(1,1.4));
+        for (let i=0;i<4;i++) addPlant("flower", rand(0.05,0.95), 1.1);
+        for (let i=0;i<3;i++) spawnMonkey();
+        for (let i=0;i<3;i++) spawnBird();
+        spawnJaguar();
+        for (let i=0;i<3;i++) spawnButterfly();
+        break;
+      case 6:
+        addPlant("tree", 0.22, 1.3); addPlant("tree", 0.6, 1.35); addPlant("tree", 0.78, 1.2);
+        for (let i=0;i<5;i++) addPlant("vine", rand(0.05,0.95), rand(1,1.5));
+        for (let i=0;i<6;i++) addPlant("flower", rand(0.05,0.95), 1.2);
+        for (let i=0;i<3;i++) addPlant("bush", rand(0.05,0.95), 1.1);
+        spawnMonkey(); spawnMonkey();
+        for (let i=0;i<2;i++) spawnBird();
+        for (let i=0;i<4;i++) spawnButterfly();
+        for (let i=0;i<2;i++) spawnDragonfly();
+        spawnFrog(); spawnFrog();
+        break;
+    }
+  }
+
+  function refreshPollen() {
+    const have = animals.filter(a => a.type === "firefly").length;
+    for (let i = have; i < pollen; i++) spawnFirefly();
+  }
+
+  // Reward creature/plant tied to a checked task — appears immediately
+  function spawnReward(type, x, y) {
+    switch (type) {
+      case "grass": addPlant("grass", x / W, 1.0); break;
+      case "succulent": addPlant("succulent", x / W, 1.0); break;
+      case "cactus": addPlant("cactus", x / W, 1.0); break;
+      case "bush": addPlant("bush", x / W, 1.0); break;
+      case "sapling": addPlant("sapling", x / W, 1.0); break;
+      case "tree": addPlant("tree", clamp(x / W, 0.1, 0.9), 0.95); break;
+      case "flower": addPlant("flower", x / W, 1.1); break;
+      case "butterfly": spawnButterfly(x, y); break;
+      case "frog": spawnFrog(); break;
+      case "bird": spawnBird(); break;
+    }
+  }
+
+  // ============================================================
+  //  Particles (bursts, sprouts, cursor trail) — capped ~60
+  // ============================================================
+  const PARTICLE_CAP = 60;
+  function addParticle(p) {
+    if (REDUCED) return;
+    particles.push(p);
+    if (particles.length > PARTICLE_CAP) particles.splice(0, particles.length - PARTICLE_CAP);
+  }
+  function burst(x, y, n, colors) {
+    for (let i = 0; i < n; i++) {
+      const a = rand(0, TAU), sp = rand(1.5, 5.5);
+      addParticle({
+        kind: "leaf", x, y,
+        vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 1.5,
+        life: 1, decay: rand(0.012, 0.024),
+        size: rand(4, 9), rot: rand(0, TAU), vr: rand(-0.2, 0.2),
+        color: pick(colors),
+      });
+    }
+  }
+  let trailCount = 0, lastTrail = 0;
+  function spawnTrail(x, y) {
+    const now = performance.now();
+    if (now - lastTrail < 55) return;
+    lastTrail = now;
+    addParticle({
+      kind: "trail", x, y, vx: rand(-0.3, 0.3), vy: rand(-0.6, -0.1),
+      life: 1, decay: 0.03, size: rand(3, 6), rot: rand(0, TAU), vr: rand(-0.1, 0.1),
+      color: Math.random() < 0.5 ? "#ffe08a" : "#74c69d", glow: Math.random() < 0.4,
+    });
+  }
+
+  // limited ground sprouts on click
+  let sproutCount = 0;
+  function trySprout(x, y) {
+    if (y < groundY - 30 || sproutCount >= 30) return false;
+    sproutCount++;
+    addPlant(pick(["grass", "flower", "succulent"]), x / W, rand(0.7, 1.1));
+    burst(x, groundY, 8, ["#74c69d", "#52b788", "#ffcb47"]);
+    blip(520, 0.05);
+    redraw();
+    return true;
+  }
+
+  // ============================================================
+  //  Render loop
+  // ============================================================
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+  function shade(col, amt) {
+    const c = hex(col);
+    return `rgb(${clamp(c[0]+amt,0,255)|0},${clamp(c[1]+amt,0,255)|0},${clamp(c[2]+amt,0,255)|0})`;
+  }
+
+  // smoothed stage value for gentle transitions
+  let stageVis = state.stage;
+
+  function drawBackground(t) {
+    const st = stageVis;
+    const lo = Math.floor(st), hi = Math.min(6, lo + 1), f = st - lo;
+    const skyTop = mix(SKY[lo][0], SKY[hi][0], f);
+    const skyBot = mix(SKY[lo][1], SKY[hi][1], f);
+
+    const g = ctx.createLinearGradient(0, 0, 0, groundY + 40);
+    g.addColorStop(0, skyTop);
+    g.addColorStop(1, skyBot);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+
+    // sun
+    const sunX = W * 0.78 + (REDUCED ? 0 : -mx * 14);
+    const sunY = H * 0.2 + (REDUCED ? 0 : -my * 10);
+    const sunR = Math.min(W, H) * 0.09;
+    const sg = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, sunR * 2.4);
+    sg.addColorStop(0, "rgba(255,240,190,0.95)");
+    sg.addColorStop(0.4, "rgba(255,224,138,0.5)");
+    sg.addColorStop(1, "rgba(255,224,138,0)");
+    ctx.fillStyle = sg;
+    ctx.beginPath(); ctx.arc(sunX, sunY, sunR * 2.4, 0, TAU); ctx.fill();
+    ctx.fillStyle = "rgba(255,240,200,0.9)";
+    ctx.beginPath(); ctx.arc(sunX, sunY, sunR, 0, TAU); ctx.fill();
+
+    // light beams (godrays) at higher stages
+    if (beams > 0.01 && !REDUCED) {
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.translate(sunX, sunY);
+      const nb = 5;
+      for (let i = 0; i < nb; i++) {
+        const a = -0.5 + i * 0.28 + Math.sin(t * 0.0003 + i) * 0.02;
+        ctx.save(); ctx.rotate(a);
+        const bg = ctx.createLinearGradient(0, 0, 0, H);
+        bg.addColorStop(0, `rgba(255,235,170,${0.10 * beams})`);
+        bg.addColorStop(1, "rgba(255,235,170,0)");
+        ctx.fillStyle = bg;
+        ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(12, 0); ctx.lineTo(70, H); ctx.lineTo(-70, H); ctx.closePath(); ctx.fill();
         ctx.restore();
       }
-    });
-    frame++;
-    if (alive && frame < 300) requestAnimationFrame(animate);
-    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.restore();
+    } else if (beams > 0.01) {
+      // reduced motion: static soft beams
+      ctx.save(); ctx.globalCompositeOperation = "lighter";
+      const bg = ctx.createLinearGradient(sunX, sunY, sunX - 120, H);
+      bg.addColorStop(0, `rgba(255,235,170,${0.12*beams})`);
+      bg.addColorStop(1, "rgba(255,235,170,0)");
+      ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+      ctx.restore();
+    }
+
+    // distant hills (parallax slow)
+    const px1 = REDUCED ? 0 : mx * 8;
+    drawHills(groundY - 40, mix(HILL_FAR[lo], HILL_FAR[hi], f), px1, 0.6, 70, t);
+    const px2 = REDUCED ? 0 : mx * 18;
+    drawHills(groundY - 6, mix(HILL_MID[lo], HILL_MID[hi], f), px2, 0.45, 110, t);
   }
-  animate();
-}
+
+  function drawHills(baseY, color, offset, freq, amp, t) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(-20, H);
+    ctx.lineTo(-20, baseY);
+    for (let x = -20; x <= W + 20; x += 30) {
+      const y = baseY - (Math.sin((x + offset * 6) * 0.006 * freq * 3) * 0.5 + 0.5) * amp - Math.sin(x * 0.013) * amp * 0.3;
+      ctx.lineTo(x + offset, y);
+    }
+    ctx.lineTo(W + 20, H);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawGround(t) {
+    const st = stageVis;
+    const lo = Math.floor(st), hi = Math.min(6, lo + 1), f = st - lo;
+    const gTop = mix(GROUND[lo][0], GROUND[hi][0], f);
+    const gBot = mix(GROUND[lo][1], GROUND[hi][1], f);
+    const g = ctx.createLinearGradient(0, groundY - 20, 0, H);
+    g.addColorStop(0, gTop);
+    g.addColorStop(1, gBot);
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(0, groundY);
+    for (let x = 0; x <= W; x += 40) {
+      ctx.lineTo(x, groundY + Math.sin(x * 0.02) * 4);
+    }
+    ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+    ctx.fill();
+
+    // cracks when dry (fade out as it grows)
+    const dry = clamp(1 - st / 2.5, 0, 1);
+    if (dry > 0.02) {
+      ctx.strokeStyle = `rgba(120,90,40,${0.35 * dry})`;
+      ctx.lineWidth = 1.5;
+      const seedCracks = 9;
+      for (let i = 0; i < seedCracks; i++) {
+        const cx = (i / seedCracks) * W + 30;
+        ctx.beginPath();
+        ctx.moveTo(cx, groundY + 16);
+        ctx.lineTo(cx + 18, groundY + 40);
+        ctx.lineTo(cx + 6, groundY + 70);
+        ctx.moveTo(cx + 18, groundY + 40);
+        ctx.lineTo(cx + 40, groundY + 52);
+        ctx.stroke();
+      }
+    }
+  }
+
+  function updateAndDrawAnimals(t, dt) {
+    for (const a of animals) {
+      if (!REDUCED) {
+        switch (a.type) {
+          case "butterfly":
+            a.x += a.vx * dt * 0.06;
+            a.y = (a.baseY || a.y) + Math.sin(t * 0.003 + a.phase) * 22;
+            if (a.x < -30) a.x = W + 30; if (a.x > W + 30) a.x = -30;
+            if (Math.random() < 0.004) a.vx = rand(-0.5, 0.5) || 0.3;
+            break;
+          case "dragonfly":
+            a.x += a.vx * dt * 0.12;
+            a.y = (a.baseY || a.y) + Math.sin(t * 0.006 + a.phase) * 10;
+            if (a.x < -40) a.x = W + 40; if (a.x > W + 40) a.x = -40;
+            break;
+          case "firefly":
+            a.x += a.vx * dt * 0.05 + Math.sin(t * 0.001 + a.phase) * 0.2;
+            a.y += a.vy * dt * 0.05 + Math.cos(t * 0.0013 + a.phase) * 0.2;
+            if (a.x < 0 || a.x > W) a.vx *= -1;
+            if (a.y < H * 0.25 || a.y > groundY) a.vy *= -1;
+            break;
+          case "beetle":
+            a.x += a.vx * dt * 0.04;
+            if (a.x < 0 || a.x > W) a.vx *= -1;
+            break;
+          case "frog":
+            a.blinkTimer -= dt * 0.06;
+            if (a.blinkTimer <= 0) { a.blink = 8; a.blinkTimer = rand(80, 240); }
+            if (a.blink > 0) a.blink -= dt * 0.06;
+            break;
+        }
+      }
+      switch (a.type) {
+        case "butterfly": drawButterfly(a, t); break;
+        case "dragonfly": drawDragonfly(a, t); break;
+        case "frog": drawFrog(a, t); break;
+        case "bird": drawBird(a, t); break;
+        case "monkey": drawMonkey(a, t); break;
+        case "jaguar": drawJaguar(a, t); break;
+        case "beetle": drawBeetle(a, t); break;
+        case "firefly": drawFirefly(a, t); break;
+      }
+    }
+  }
+
+  function drawFirefly(a, t) {
+    const glow = 0.4 + Math.abs(Math.sin(t * 0.004 + a.phase)) * 0.6;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    const r = 8;
+    const g = ctx.createRadialGradient(a.x, a.y, 0, a.x, a.y, r);
+    g.addColorStop(0, `rgba(255,240,150,${0.9 * glow})`);
+    g.addColorStop(1, "rgba(255,240,150,0)");
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(a.x, a.y, r, 0, TAU); ctx.fill();
+    ctx.fillStyle = `rgba(255,255,210,${glow})`;
+    ctx.beginPath(); ctx.arc(a.x, a.y, 1.6, 0, TAU); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawPlants(t) {
+    // foreground parallax shift
+    const off = REDUCED ? 0 : mx * 22;
+    ctx.save();
+    ctx.translate(off, 0);
+    for (const p of plants) {
+      switch (p.type) {
+        case "grass": drawGrass(p, t); break;
+        case "succulent": drawSucculent(p, t); break;
+        case "cactus": drawCactus(p, t); break;
+        case "bush": drawBush(p, t); break;
+        case "sapling": drawSapling(p, t); break;
+        case "tree": drawTree(p, t); break;
+        case "vine": drawVine(p, t); break;
+        case "flower": drawFlower(p, t); break;
+      }
+    }
+    ctx.restore();
+  }
+
+  function updateAndDrawParticles(dt) {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx * dt * 0.06;
+      p.y += p.vy * dt * 0.06;
+      if (p.kind === "leaf") { p.vy += 0.12; p.vx *= 0.99; }
+      p.rot += p.vr;
+      p.life -= p.decay * dt * 0.06;
+      if (p.life <= 0) { particles.splice(i, 1); continue; }
+      ctx.save();
+      ctx.globalAlpha = clamp(p.life, 0, 1);
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      if (p.glow) { ctx.globalCompositeOperation = "lighter"; }
+      ctx.fillStyle = p.color;
+      if (p.kind === "trail" && p.glow) {
+        ctx.beginPath(); ctx.arc(0, 0, p.size, 0, TAU); ctx.fill();
+      } else {
+        // small leaf shape
+        ctx.beginPath();
+        ctx.ellipse(0, 0, p.size, p.size * 0.55, 0, 0, TAU);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+  }
+
+  let last = performance.now();
+  let running = false;
+
+  function drawFrame(t) {
+    const dt = REDUCED ? 16 : Math.min(48, t - last);
+    last = t;
+
+    // smooth parallax + stage
+    mx += (tmx - mx) * 0.06;
+    my += (tmy - my) * 0.06;
+    stageVis += (state.stage - stageVis) * 0.04;
+
+    drawBackground(t);
+    drawGround(t);
+    drawPlants(t);
+    updateAndDrawAnimals(t, dt);
+    updateAndDrawParticles(dt);
+  }
+
+  function loop(t) {
+    if (!running) return;
+    drawFrame(t);
+    requestAnimationFrame(loop);
+  }
+  function startLoop() {
+    if (REDUCED) { drawFrame(performance.now()); return; }
+    if (running) return;
+    running = true;
+    last = performance.now();
+    requestAnimationFrame(loop);
+  }
+  function stopLoop() { running = false; }
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) stopLoop();
+    else startLoop();
+  });
+
+  // ============================================================
+  //  Audio (WebAudio blips) — default OFF, office-safe
+  // ============================================================
+  let audioOn = false, actx = null;
+  function blip(freq, dur, type) {
+    if (!audioOn || REDUCED) return;
+    try {
+      if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = type || "sine";
+      o.frequency.value = freq;
+      g.gain.value = 0.0001;
+      o.connect(g); g.connect(actx.destination);
+      const now = actx.currentTime;
+      g.gain.exponentialRampToValueAtTime(0.12, now + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + (dur || 0.12));
+      o.start(now); o.stop(now + (dur || 0.12) + 0.02);
+    } catch (e) {}
+  }
+  function chord() {
+    if (!audioOn) return;
+    [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => blip(f, 0.18, "triangle"), i * 70));
+  }
+
+  const soundBtn = document.getElementById("soundBtn");
+  soundBtn.addEventListener("click", () => {
+    audioOn = !audioOn;
+    soundBtn.setAttribute("aria-pressed", String(audioOn));
+    soundBtn.textContent = audioOn ? "🔊" : "🔇";
+    if (audioOn) {
+      try { if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === "suspended") actx.resume(); } catch (e) {}
+      blip(660, 0.1);
+    }
+  });
+
+  // ============================================================
+  //  UI rendering
+  // ============================================================
+  const panel = document.getElementById("panel");
+  const lvlText = document.getElementById("lvlText");
+  const checkText = document.getElementById("checkText");
+  const pbarFill = document.getElementById("pbarFill");
+  const toastEl = document.getElementById("toast");
+
+  let toastTimer = null;
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2200);
+  }
+
+  const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12.5l5 5L20 6" stroke="#14342b" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  function totalChecks() {
+    let n = 0;
+    for (const lv of state.checked) for (const c of lv) if (c) n++;
+    return n;
+  }
+
+  function updateHUD() {
+    if (state.level >= LEVELS.length) {
+      lvlText.textContent = "Kész! 🏆";
+    } else {
+      lvlText.textContent = (state.level + 1) + "/" + LEVELS.length + " pálya";
+    }
+    const total = LEVELS.reduce((s, l) => s + l.tasks.length, 0);
+    const done = totalChecks();
+    checkText.textContent = done + "/" + total + " pipa";
+    pbarFill.style.width = (state.level >= LEVELS.length ? 100 : (done / total) * 100) + "%";
+  }
+
+  function renderLevel() {
+    updateHUD();
+    if (state.level >= LEVELS.length) { renderFinal(); return; }
+    const lv = LEVELS[state.level];
+    const checks = state.checked[state.level];
+    const allDone = checks.every(Boolean);
+
+    panel.innerHTML = "";
+
+    const tag = el("div", "lvl-tag");
+    tag.innerHTML = "🌱 " + lv.tag;
+    panel.appendChild(tag);
+
+    const title = el("h2", "lvl-title");
+    title.textContent = lv.title;
+    panel.appendChild(title);
+
+    const intro = el("p", "lvl-intro");
+    intro.textContent = lv.intro;
+    panel.appendChild(intro);
+
+    const tasks = el("div", "tasks");
+    lv.tasks.forEach((task, j) => {
+      const label = el("label", "task");
+      const cbWrap = el("span", "checkbox");
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.checked = checks[j];
+      input.setAttribute("aria-label", task.label);
+      const box = el("span", "box");
+      box.innerHTML = CHECK_SVG;
+      cbWrap.appendChild(input);
+      cbWrap.appendChild(box);
+      const text = el("span", "label");
+      text.textContent = task.label;
+      label.appendChild(cbWrap);
+      label.appendChild(text);
+
+      input.addEventListener("change", () => onToggle(state.level, j, input, cbWrap));
+      tasks.appendChild(label);
+    });
+    panel.appendChild(tasks);
+
+    if (lv.tip) {
+      const tip = el("div", "tip");
+      tip.innerHTML = '<span class="bulb">💡</span><span>' + escapeHTML(lv.tip) + '</span>';
+      panel.appendChild(tip);
+    }
+    if (lv.bonus) {
+      const bonus = el("div", "tip bonus");
+      bonus.innerHTML = '<span class="bulb">✨</span><span><b>Bónusz:</b> ' + escapeHTML(lv.bonus) + '</span>';
+      panel.appendChild(bonus);
+    }
+
+    const next = document.createElement("button");
+    next.className = "next" + (allDone ? " show" : "");
+    next.textContent = state.level === LEVELS.length - 1 ? "Irány a dzsungel csúcsa →" : "Tovább a következő pályára →";
+    next.addEventListener("click", goNext);
+    panel.appendChild(next);
+  }
+
+  function renderFinal() {
+    panel.innerHTML = "";
+    const f = el("div", "final");
+    f.innerHTML =
+      '<div class="crown">🏆🌴</div>' +
+      '<h1>Gratulálok, megtanultál&nbsp;deployolni.</h1>' +
+      '<p>A száraz sivatagból bujának, élő dzsungelt varázsoltál — és közben fel is tetted az oldaladat az internetre. A linkedet bárki megnyithatja a világ bármely pontján. 🌍</p>' +
+      '<button class="again" id="againBtn">↻ Újrakezdem az utat</button>';
+    panel.appendChild(f);
+    document.getElementById("againBtn").addEventListener("click", resetGame);
+    celebrate();
+  }
+
+  function onToggle(li, j, input, cbWrap) {
+    state.checked[li][j] = input.checked;
+    save();
+    updateHUD();
+
+    if (input.checked) {
+      // bounce
+      cbWrap.classList.remove("bounce");
+      void cbWrap.offsetWidth;
+      cbWrap.classList.add("bounce");
+      // particle burst + reward creature at checkbox location (mapped to canvas)
+      const r = cbWrap.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      burst(cx, cy, 14, ["#74c69d", "#52b788", "#ffcb47", "#40916c"]);
+      const reward = LEVELS[li].tasks[j].reward;
+      spawnReward(reward, rand(W * 0.1, W * 0.9), rand(groundY - 120, groundY - 40));
+      blip(620 + j * 90, 0.1, "triangle");
+      redraw();
+    }
+
+    // level complete?
+    if (state.checked[li].every(Boolean)) {
+      const next = panel.querySelector(".next");
+      if (next && !next.classList.contains("show")) {
+        next.classList.add("show");
+        // celebratory burst across the card
+        const pr = panel.getBoundingClientRect();
+        burst(pr.left + pr.width / 2, pr.top + 30, 24, ["#ffcb47", "#74c69d", "#ff6b9d", "#7aa8ff"]);
+        chord();
+        toast("Pálya teljesítve! 🎉");
+      }
+    }
+  }
+
+  function goNext() {
+    const completed = state.level;
+    // evolve scene by one stage (cumulative) when leaving a completed level
+    const newStage = clamp(completed + 1, 0, 6);
+    if (newStage > state.stage) {
+      state.stage = newStage;
+      addStageBatch(newStage);
+      beams = newStage >= 5 ? 1 : newStage >= 4 ? 0.45 : newStage >= 3 ? 0.18 : 0;
+      pollen = newStage >= 5 ? 24 : newStage >= 4 ? 14 : newStage >= 2 ? 6 : 0;
+      refreshPollen();
+      // big evolution burst from the ground
+      burst(W * 0.5, groundY - 40, 28, ["#74c69d", "#52b788", "#ffcb47", "#40916c", "#95d5b2"]);
+    }
+    state.level = completed + 1;
+    if (state.level >= LEVELS.length) {
+      state.stage = 6;
+      populateStageEnsure(6);
+    }
+    save();
+    renderLevel();
+    panel.scrollTop = 0;
+    redraw();
+  }
+
+  // make sure full stage-6 scene exists when jumping to final
+  function populateStageEnsure(stage) {
+    if (animals.filter(a=>a.type==="monkey").length === 0) addStageBatch(5);
+    addStageBatch(6);
+    beams = 1; pollen = 28; refreshPollen();
+  }
+
+  function resetGame() {
+    state = { level: 0, stage: 0, checked: LEVELS.map(l => l.tasks.map(() => false)) };
+    sproutCount = 0;
+    save();
+    populateStage(0);
+    renderLevel();
+    redraw();
+    toast("Új kaland indul! 🌱");
+  }
+
+  function celebrate() {
+    if (REDUCED) return;
+    let n = 0;
+    const iv = setInterval(() => {
+      for (let i = 0; i < 4; i++) {
+        addParticle({
+          kind: "leaf", x: rand(0, W), y: -10,
+          vx: rand(-1, 1), vy: rand(1, 3),
+          life: 1, decay: rand(0.006, 0.012),
+          size: rand(5, 10), rot: rand(0, TAU), vr: rand(-0.2, 0.2),
+          color: pick(["#ffcb47", "#74c69d", "#ff6b9d", "#7aa8ff", "#95d5b2"]),
+        });
+      }
+      if (++n > 24) clearInterval(iv);
+    }, 140);
+    chord();
+  }
+
+  // ============================================================
+  //  Easter eggs
+  // ============================================================
+  // click on empty ground -> sprout
+  canvas.addEventListener("pointerdown", e => {
+    if (e.target !== canvas) return;
+    trySprout(e.clientX, e.clientY);
+  });
+
+  // logo multi-click -> frog blinks / monkey waves
+  let logoClicks = 0, logoTimer = null;
+  document.getElementById("logo").addEventListener("click", () => {
+    logoClicks++;
+    clearTimeout(logoTimer);
+    logoTimer = setTimeout(() => { logoClicks = 0; }, 1200);
+    if (logoClicks === 3) {
+      logoClicks = 0;
+      if (Math.random() < 0.5) {
+        const f = spawnFrog(rand(W * 0.3, W * 0.7));
+        toast("Egy béka pislantott rád! 🐸");
+      } else {
+        spawnMonkey();
+        toast("Egy majom integet! 🐒");
+      }
+      burst(70, 60, 10, ["#74c69d", "#ffcb47"]);
+      redraw();
+    }
+  });
+
+  // type "jungle" -> butterfly rain
+  let typed = "";
+  window.addEventListener("keydown", e => {
+    if (e.key && e.key.length === 1) {
+      typed = (typed + e.key.toLowerCase()).slice(-6);
+      if (typed === "jungle") {
+        typed = "";
+        for (let i = 0; i < 8; i++) setTimeout(() => spawnButterfly(rand(0, W), rand(H * 0.15, H * 0.4)), i * 80);
+        toast("Pillangó-eső! 🦋");
+        blip(880, 0.12, "triangle");
+        redraw();
+      }
+    }
+  });
+
+  // ============================================================
+  //  Helpers
+  // ============================================================
+  function el(tag, cls) { const e = document.createElement(tag); if (cls) e.className = cls; return e; }
+  function escapeHTML(s) { const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+  // In reduced-motion mode the rAF loop is off, so repaint the static scene on mutations
+  function redraw() { if (REDUCED) drawFrame(performance.now()); }
+
+  // ============================================================
+  //  Boot
+  // ============================================================
+  load();
+  resize();
+  populateStage(state.stage);
+  renderLevel();
+  window.addEventListener("resize", resize, { passive: true });
+  startLoop();
+})();
 </script>
 </body>
 </html>
